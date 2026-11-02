@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="description" content="Jogo de geometria e álgebra com 5 fases, do triângulo ao heptágono.">
+<meta name="description" content="Arte moderna e matemática: um jogo de geometria e álgebra por Enrico, Raul, Arthur e Pietro.">
 <title>Rota dos Polígonos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -266,6 +266,106 @@ var{font-family:var(--mono); font-style:italic; background:var(--mark); padding:
 .linkbtn.warn{color:var(--bad); font-weight:700}
 .hintchip{font-size:14px; padding:3px 10px; border-radius:999px; background:var(--mark); color:var(--ink)}
 .hearts .inf{font-family:var(--mono); font-size:20px; margin-left:2px}
+
+/* ---------- landing ---------- */
+:root{--art-white:#F2F1EC; --art-black:#17181C; --art-red:#D3263A; --art-blue:#1F4EA6; --art-yellow:#F2C230; --art-violet:#6A3E9E;
+  --sky1:#9CC3E8; --sky2:#F6C49A; --sun:#FFE7A3; --bld:#3A4457; --bld2:#55607A; --win:#FFE07A; --sea:#2F74B5; --sand:#E9D6A6; --shade:rgba(20,24,40,.28); --mat:#E2E6EC}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--sky1:#141B33; --sky2:#4A3560; --sun:#F2B5A0; --bld:#0A0E16; --bld2:#1B2232; --win:#E8B923; --sea:#17375C; --sand:#6E5E40; --shade:rgba(0,0,0,.45); --mat:#0B0F16} }
+:root[data-theme="dark"]{--sky1:#141B33; --sky2:#4A3560; --sun:#F2B5A0; --bld:#0A0E16; --bld2:#1B2232; --win:#E8B923; --sea:#17375C; --sand:#6E5E40; --shade:rgba(0,0,0,.45); --mat:#0B0F16}
+#map{gap:0}
+.topnav{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px 20px; padding-bottom:12px}
+.brand{display:inline-flex; align-items:center; gap:10px; font-family:var(--display); font-weight:500; font-size:16px}
+.brand-tri{fill:var(--cobalt)}
+.navlinks{display:flex; flex-wrap:wrap; align-items:center; gap:6px 18px; font-size:15px}
+.navlinks a{color:var(--ink); text-decoration:none}
+.navlinks a:hover{color:var(--cobalt)}
+a.btn{display:inline-block; text-decoration:none}
+.btn.small{padding:6px 16px; font-size:14px; color:var(--on-cobalt)}
+.hero2{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:clamp(24px,5vw,64px); align-items:center; padding-block:clamp(24px,6vw,72px)}
+@media (max-width:820px){ .hero2{grid-template-columns:minmax(0,1fr)} .hero-art{max-width:420px} }
+.hero-text{display:grid; gap:18px; min-width:0}
+.hero2 h1{font-size:clamp(42px, 8vw, 88px); font-weight:700; letter-spacing:-.03em; line-height:1}
+.hero2 h1 span{display:block; color:var(--cobalt)}
+.lead{font-size:clamp(18px, 2.2vw, 21px); margin:0; max-width:46ch; color:var(--muted)}
+.byline{margin:0; font-size:15px; color:var(--muted)}
+.byline b{color:var(--ink)}
+.hero-art{width:100%; height:auto; border-radius:6px; box-shadow:0 1px 0 var(--line), 0 24px 60px -24px rgba(10,20,60,.35); justify-self:center}
+.hero-art .ha-bg{fill:var(--art-white)} .hero-art .ha-red{fill:var(--art-red)} .hero-art .ha-blue{fill:var(--art-blue)} .hero-art .ha-yel{fill:var(--art-yellow)}
+.hero-art .ha-lines line{stroke:var(--art-black); stroke-width:10}
+.hero-art .ring{fill:none; stroke:var(--art-black); stroke-width:8}
+.hero-art .disc{fill:var(--art-violet)}
+.hero-art .t{fill:var(--art-yellow); stroke:var(--art-black); stroke-width:4}
+.hero-art .q{fill:var(--art-white); stroke:var(--art-black); stroke-width:4}
+.hero-art .h{fill:var(--art-blue); stroke:var(--art-black); stroke-width:4}
+.hero-art .sq{fill:var(--art-black)}
+.hero-art .thinl{stroke:var(--art-black); stroke-width:2}
+.hero-art .arc2{fill:none; stroke:var(--art-black); stroke-width:5}
+.hero-art .dotc{fill:var(--art-red); stroke:var(--art-black); stroke-width:3}
+.float{transform-box:fill-box; transform-origin:center; animation:float 7s ease-in-out infinite}
+.float.d2{animation-duration:9s; animation-delay:-3s} .float.d3{animation-duration:11s; animation-delay:-5s}
+@keyframes float{50%{transform:translateY(-10px) rotate(6deg)}}
+
+.sec{display:grid; gap:28px; padding-block:clamp(40px,7vw,80px); border-top:1px solid var(--line)}
+.sec-head{display:grid; gap:12px; min-width:0}
+.sec-head h2{font-size:clamp(28px, 4.6vw, 44px); font-weight:700; letter-spacing:-.02em}
+.sec-head p{margin:0; max-width:64ch; color:var(--muted); font-size:17.5px}
+.artgrid{display:grid; grid-template-columns:repeat(auto-fit, minmax(min(280px,100%), 1fr)); gap:24px; align-items:start}
+.art{margin:0; display:grid; gap:16px}
+.frame{background:var(--mat); padding:18px; border-radius:4px; aspect-ratio:4/3; display:grid; place-items:center; overflow:hidden; max-width:100%}
+.frame img,.frame svg{max-width:100%; max-height:100%; width:auto; height:auto; display:block; box-shadow:0 10px 24px -10px rgba(0,0,0,.45)}
+.frame svg{width:100%; height:100%; box-shadow:none; filter:drop-shadow(0 10px 12px rgba(0,0,0,.28))}
+.art figcaption{display:grid; gap:8px; align-content:start}
+.art .eyebrow,.links3 .eyebrow,.concreta .eyebrow{color:var(--c)}
+.art h3,.links3 h3,.concreta h3{font-size:19px; font-weight:500}
+.art p,.links3 p,.concreta p{margin:0; font-size:16px; line-height:1.55}
+.phase-link{justify-self:start; background:none; border:none; border-bottom:2px solid var(--c, var(--cobalt)); color:var(--c, var(--cobalt)); padding:2px 0; font-weight:700; font-size:15px; cursor:pointer}
+.phase-link:hover{opacity:.8}
+.credit{font-size:12.5px; color:var(--muted); font-family:var(--mono)}
+.art .c-ill{display:none} .art.fallback .c-ill{display:inline} .art.fallback .c-photo{display:none}
+.rel .aw{fill:var(--art-white)} .rel .ar{fill:var(--art-red)} .rel .ab{fill:var(--art-blue)} .rel .ay{fill:var(--art-yellow)} .rel .av{fill:var(--art-violet)} .rel .akf{fill:var(--art-black)}
+.rel .ak line{stroke:var(--art-black); stroke-width:7}
+.rel .akt line{stroke:var(--art-black); stroke-width:1.6}
+.rel .akt2{fill:none; stroke:var(--art-black); stroke-width:2.5}
+.rel .ack rect{fill:var(--art-black)}
+.concreta{display:grid; grid-template-columns:minmax(0,240px) minmax(0,1fr); gap:28px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:clamp(18px,3vw,28px)}
+.concreta > div{display:grid; gap:10px}
+@media (max-width:640px){ .concreta{grid-template-columns:minmax(0,1fr)} #concrete{max-width:240px} }
+#concrete{width:100%; height:auto; border-radius:4px}
+#concrete .cb{fill:var(--art-white)} #concrete .c1f{fill:var(--c)} #concrete .c2f{fill:var(--art-black)}
+.mono{font-family:var(--mono); font-size:.92em; background:var(--mark); padding:0 .3em; border-radius:4px}
+
+.bc-grid{display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:clamp(24px,4vw,48px); align-items:center}
+@media (max-width:820px){ .bc-grid{grid-template-columns:minmax(0,1fr)} }
+.skyline{margin:0; display:grid; gap:8px}
+#skyline{width:100%; height:auto; border-radius:10px; display:block}
+#skyline .sk1{stop-color:var(--sky1)} #skyline .sk2{stop-color:var(--sky2)}
+#skyline .sun{fill:var(--sun)}
+#skyline .bld{fill:var(--bld)} #skyline .bld.b2{fill:var(--bld2)} #skyline .bld.hi{fill:var(--cobalt)}
+#skyline .winr{fill:var(--win); opacity:.55}
+#skyline .sand{fill:var(--sand)} #skyline .sea{fill:var(--sea)} #skyline .wave{stroke:var(--sky1); stroke-width:2; fill:none; opacity:.6}
+#skyline .shadow{fill:var(--shade)}
+#skyline .ray{stroke:var(--amber); stroke-width:3; stroke-dasharray:8 6}
+#skyline .wheel{fill:none; stroke:var(--art-white); stroke-width:3} #skyline .spoke{stroke:var(--art-white); stroke-width:1.2; opacity:.8}
+#skyline .cab{fill:var(--art-red)} #skyline .leg{stroke:var(--art-white); stroke-width:4}
+#skyline text{font-family:var(--mono); font-size:15px; font-weight:600; fill:var(--ink); paint-order:stroke; stroke:var(--surface); stroke-width:4px}
+.wheelspin{transform-box:view-box; transform-origin:560px 205px; animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.links3{display:grid; grid-template-columns:repeat(auto-fit, minmax(min(240px,100%),1fr)); gap:18px}
+.links3 > div{display:grid; gap:8px; align-content:start; padding:18px; background:var(--surface); border:1px solid var(--line); border-radius:12px}
+.shadowq{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px 24px; align-items:center; padding:20px; border-radius:14px; background:var(--cobalt-soft)}
+.shadowq .prompt{margin:4px 0 0}
+.shadow-sol{grid-column:1/-1; margin:0; padding-left:1.4em; font-family:var(--mono); display:grid; gap:4px}
+@media (max-width:620px){ .shadowq{grid-template-columns:minmax(0,1fr)} .shadowq .btn{justify-self:start} }
+
+.team{display:grid; grid-template-columns:repeat(auto-fit, minmax(min(180px,100%),1fr)); gap:16px}
+.member{display:grid; justify-items:center; gap:10px; padding:22px 12px; background:var(--surface); border:1px solid var(--line); border-radius:14px}
+.member svg{width:88px; height:88px}
+.member polygon{fill:var(--cs); stroke:var(--c); stroke-width:4; stroke-linejoin:round}
+.member text{font-family:var(--display); font-weight:700; font-size:30px; fill:var(--c)}
+.member b{font-family:var(--display); font-weight:500; font-size:19px}
+#jogar .modes{max-width:620px}
+.foot{display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 24px; padding-block:24px 8px; border-top:1px solid var(--line); font-size:13.5px; color:var(--muted)}
+@media (prefers-reduced-motion: reduce){ .float,.wheelspin{animation:none} }
 </style>
 
 </head>
@@ -273,29 +373,143 @@ var{font-family:var(--mono); font-style:italic; background:var(--mark); padding:
 <div class="wrap">
   <!-- MAPA -->
   <section id="map" class="wrap">
-    <header class="hero">
-      <div class="eyebrow">Geometria + álgebra · 5 fases</div>
-      <h1>Rota dos <span>Polígonos</span></h1>
-      <p>Cada fase é um polígono com um lado a mais que a anterior. Resolva os problemas, ganhe estrelas e libere a próxima figura, do triângulo ao heptágono.</p>
-      <div class="stats">
-        <span class="chip" id="totStars">★ 0 / 24</span>
-        <span class="chip" id="totScore">0 pontos</span>
-        <label class="toggle" for="free"><input type="checkbox" id="free"> Liberar todas as fases</label>
+    <nav class="topnav" aria-label="Seções da página">
+      <span class="brand"><svg viewBox="0 0 28 28" width="26" height="26" aria-hidden="true"><polygon points="14,3 26,25 2,25" class="brand-tri"/></svg>Rota dos Polígonos</span>
+      <div class="navlinks"><a href="#arte">Arte</a><a href="#bc">Balneário Camboriú</a><a href="#equipe">Equipe</a><a href="#jogar" class="btn small">Jogar</a></div>
+    </nav>
+
+    <header class="hero2">
+      <div class="hero-text">
+        <div class="eyebrow">Arte moderna · geometria · álgebra</div>
+        <h1>Rota dos <span>Polígonos</span></h1>
+        <p class="lead">Mondrian pintava com retângulos. Kandinsky, com círculos e ângulos. Malevich pintou um quadrado. Neste jogo você resolve as contas escondidas nessas formas, fase por fase, do triângulo ao heptágono.</p>
+        <div class="btns"><a class="btn" href="#jogar">Jogar agora</a><a class="btn ghost" href="#arte">Ver a arte</a></div>
+        <p class="byline">Um projeto de <b>Enrico</b>, <b>Raul</b>, <b>Arthur</b> e <b>Pietro</b></p>
+      </div>
+      <svg class="hero-art" id="heroArt" viewBox="0 0 480 480" role="img" aria-label="Composição geométrica inspirada em Mondrian e Kandinsky"></svg>
+    </header>
+
+    <section class="sec" id="arte">
+      <div class="sec-head">
+        <div class="eyebrow">Arte moderna + matemática</div>
+        <h2>Quando a pintura virou geometria</h2>
+        <p>No começo do século 20, muitos artistas pararam de copiar a realidade e passaram a pintar com formas puras: retas, ângulos, quadrados, triângulos e círculos. A arte moderna ficou cheia de matemática. Cada obra abaixo se liga a uma fase do jogo.</p>
+      </div>
+      <div class="artgrid">
+        <figure class="art" style="--c:var(--p1)">
+          <div class="frame"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Piet_Mondriaan%2C_1930_-_Mondrian_Composition_II_in_Red%2C_Blue%2C_and_Yellow.jpg?width=900" alt="Composição II em Vermelho, Azul e Amarelo, de Piet Mondrian (1930)" loading="lazy" decoding="async">
+            <svg class="rel" hidden viewBox="0 0 300 300" aria-label="Releitura da composição de Mondrian"><rect width="300" height="300" class="aw"/><rect x="87" y="0" width="213" height="212" class="ar"/><rect x="0" y="212" width="87" height="88" class="ab"/><rect x="272" y="258" width="28" height="42" class="ay"/><g class="ak"><line x1="87" y1="0" x2="87" y2="300"/><line x1="0" y1="212" x2="300" y2="212"/><line x1="0" y1="95" x2="87" y2="95"/><line x1="272" y1="212" x2="272" y2="300"/><line x1="272" y1="258" x2="300" y2="258"/></g></svg></div>
+          <figcaption>
+            <span class="eyebrow">Piet Mondrian · 1930</span>
+            <h3>Composição II em Vermelho, Azul e Amarelo</h3>
+            <p>Mondrian usava só linhas retas, horizontais e verticais, que se cruzam sempre em ângulos de 90°. O quadro vira um conjunto de retângulos e quadrados. Dá para medir cada um, calcular a área e o perímetro e descobrir qual cor ocupa mais espaço.</p>
+            <button type="button" class="phase-link" data-go="1">Fase 2 · Perímetro e área →</button>
+            <small class="credit"><span class="c-photo">Foto: Wikimedia Commons · obra em domínio público</span><span class="c-ill">Releitura geométrica (ilustração). A foto original não carrega nesta visualização.</span></small>
+          </figcaption>
+        </figure>
+        <figure class="art" style="--c:var(--p0)">
+          <div class="frame"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Vassily_Kandinsky%2C_1923_-_Composition_8%2C_huile_sur_toile%2C_140_cm_x_201_cm%2C_Mus%C3%A9e_Guggenheim%2C_New_York.jpg?width=900" alt="Composição VIII, de Wassily Kandinsky (1923)" loading="lazy" decoding="async">
+            <svg class="rel" hidden viewBox="0 0 300 210" aria-label="Releitura da Composição VIII de Kandinsky"><rect width="300" height="210" class="aw"/><circle cx="62" cy="58" r="44" class="av"/><circle cx="62" cy="58" r="31" class="akf"/><circle cx="62" cy="58" r="12" class="ar"/><g class="akt"><line x1="20" y1="190" x2="280" y2="30"/><line x1="110" y1="20" x2="200" y2="200"/><line x1="150" y1="120" x2="290" y2="120"/><line x1="230" y1="40" x2="230" y2="190"/><line x1="40" y1="150" x2="140" y2="100"/></g><polygon points="150,150 205,190 120,195" class="ay"/><polygon points="240,60 280,110 225,105" class="akf"/><path d="M160 80 A30 30 0 0 1 220 80" class="akt2"/><circle cx="180" cy="140" r="14" class="ab"/><circle cx="262" cy="160" r="8" class="ar"/><circle cx="125" cy="60" r="6" class="ab"/><g class="ack"><rect x="30" y="160" width="10" height="10"/><rect x="50" y="160" width="10" height="10"/><rect x="40" y="170" width="10" height="10"/><rect x="60" y="170" width="10" height="10"/></g></svg></div>
+          <figcaption>
+            <span class="eyebrow">Wassily Kandinsky · 1923</span>
+            <h3>Composição VIII</h3>
+            <p>Kandinsky via a pintura como uma música feita de formas. Aqui aparecem círculos, triângulos, semicírculos e retas que se cruzam em ângulos agudos, retos e obtusos. Ele foi professor na escola Bauhaus e escreveu o livro <i>Ponto e Linha sobre Plano</i> (1926).</p>
+            <button type="button" class="phase-link" data-go="0">Fase 1 · Ângulos →</button>
+            <small class="credit"><span class="c-photo">Foto: Wikimedia Commons · obra em domínio público</span><span class="c-ill">Releitura geométrica (ilustração). A foto original não carrega nesta visualização.</span></small>
+          </figcaption>
+        </figure>
+        <figure class="art" style="--c:var(--p2)">
+          <div class="frame"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Kazimir_Malevich%2C_1915%2C_Black_Suprematic_Square%2C_oil_on_linen_canvas%2C_79.5_x_79.5_cm%2C_Tretyakov_Gallery%2C_Moscow.jpg?width=900" alt="Quadrado Negro, de Kazimir Malevich (1915)" loading="lazy" decoding="async">
+            <svg class="rel" hidden viewBox="0 0 300 300" aria-label="Releitura do Quadrado Negro de Malevich"><rect width="300" height="300" class="aw"/><rect x="48" y="48" width="204" height="204" class="akf"/></svg></div>
+          <figcaption>
+            <span class="eyebrow">Kazimir Malevich · 1915</span>
+            <h3>Quadrado Negro</h3>
+            <p>Malevich queria uma arte só de formas puras, que ele chamou de Suprematismo. A obra é apenas um quadrado: 4 lados iguais e 4 ângulos retos. Se o lado mede 3, a diagonal mede √(3² + 3²) ≈ 4,24, pelo Teorema de Pitágoras.</p>
+            <button type="button" class="phase-link" data-go="2">Fase 3 · Pitágoras →</button>
+            <small class="credit"><span class="c-photo">Foto: Wikimedia Commons · obra em domínio público</span><span class="c-ill">Releitura geométrica (ilustração). A foto original não carrega nesta visualização.</span></small>
+          </figcaption>
+        </figure>
+      </div>
+      <div class="concreta" style="--c:var(--p3)">
+        <svg id="concrete" viewBox="0 0 240 240" role="img" aria-label="Padrão de quadrados gerado por uma regra matemática"></svg>
+        <div>
+          <span class="eyebrow">E no Brasil?</span>
+          <h3>Arte concreta: obras feitas de regras</h3>
+          <p>A Semana de Arte Moderna de 1922, em São Paulo, abriu as portas do modernismo no Brasil. Nos anos 1950, a <b>arte concreta</b> foi além: o Grupo Ruptura (São Paulo, 1952), liderado por Waldemar Cordeiro, e o Grupo Frente (Rio de Janeiro, 1954), com Lygia Clark e Hélio Oiticica, criavam obras a partir de regras precisas de posição, repetição e proporção.</p>
+          <p>Como num sistema de equações, cada forma precisa obedecer a várias regras ao mesmo tempo. O padrão ao lado foi gerado por uma regra só: <span class="mono">giro = (linha + coluna) × 90°</span>.</p>
+          <button type="button" class="phase-link" data-go="3">Fase 4 · Sistemas →</button>
+          <small class="credit">Ilustração gerada pelo jogo, inspirada na arte concreta.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="bc">
+      <div class="bc-grid">
+        <div class="sec-head">
+          <div class="eyebrow">Balneário Camboriú · Santa Catarina</div>
+          <h2>Uma cidade desenhada com geometria</h2>
+          <p>Balneário Camboriú é famosa pelos arranha-céus. Alguns dos prédios mais altos do Brasil estão ali, com mais de 280 metros. Vista da praia, a orla parece um quadro de Mondrian em pé: retângulos altos lado a lado, com janelas em grade. É a herança da arquitetura moderna, que, como a pintura moderna, trocou os enfeites por formas geométricas simples.</p>
+        </div>
+        <figure class="skyline">
+          <svg id="skyline" viewBox="0 0 640 360" role="img" aria-label="Ilustração da orla de Balneário Camboriú com prédios, roda-gigante e a sombra de um prédio na areia"></svg>
+          <figcaption class="credit">Ilustração da orla: prédios, roda-gigante e a sombra de um prédio sobre a areia.</figcaption>
+        </figure>
+      </div>
+      <div class="links3">
+        <div style="--c:var(--p1)"><span class="eyebrow">Fachadas</span><h3>Prédios são retângulos</h3><p>Cada prédio é um prisma de base retangular, e cada fachada é um retângulo: área = largura × altura. As janelas formam uma grade, como uma tabela de multiplicação.</p><button type="button" class="phase-link" data-go="1">Fase 2 · Perímetro e área →</button></div>
+        <div style="--c:var(--p2)"><span class="eyebrow">Sombra na praia</span><h3>Um triângulo na areia</h3><p>No fim da tarde, o sol se põe atrás dos prédios e a sombra deles cai sobre a areia. O prédio, a sombra e o raio de sol formam um triângulo retângulo.</p><button type="button" class="phase-link" data-go="2">Fase 3 · Pitágoras →</button></div>
+        <div style="--c:var(--p0)"><span class="eyebrow">Roda-gigante</span><h3>360° em uma volta</h3><p>A roda-gigante da cidade tem cerca de 65 m de altura. Uma volta completa tem 360°. Se uma roda tiver 36 cabines igualmente espaçadas, cada uma fica a 360° ÷ 36 = 10° da próxima.</p><button type="button" class="phase-link" data-go="0">Fase 1 · Ângulos →</button></div>
+      </div>
+      <div class="shadowq">
+        <div>
+          <span class="eyebrow">Desafio da sombra</span>
+          <p class="prompt">Um prédio de <b>120 m</b> faz uma sombra de <b>160 m</b> na areia. Qual é a distância do topo do prédio até a ponta da sombra?</p>
+        </div>
+        <button type="button" class="btn" id="shadowBtn">Ver resolução</button>
+        <ol class="shadow-sol" id="shadowSol" hidden><li>d² = 120² + 160²</li><li>d² = 14.400 + 25.600 = 40.000</li><li>d = √40.000 = <b>200 m</b></li></ol>
+      </div>
+    </section>
+
+    <section class="sec" id="equipe">
+      <div class="sec-head">
+        <div class="eyebrow">Equipe</div>
+        <h2>Quem fez</h2>
+        <p>Rota dos Polígonos é um projeto de arte moderna e matemática criado por:</p>
+      </div>
+      <div class="team" id="team"></div>
+    </section>
+
+    <section class="sec" id="jogar">
+      <div class="sec-head">
+        <div class="eyebrow">O jogo · 5 fases</div>
+        <h2>Escolha o modo e comece</h2>
+        <p>Cada fase é um polígono com um lado a mais que a anterior. Resolva os problemas, ganhe estrelas e libere a próxima figura.</p>
       </div>
       <div class="modes" role="radiogroup" aria-label="Modo de jogo">
-        <button type="button" class="mode" role="radio" data-mode="facil"><b>Fácil</b><span>Vidas infinitas · 6 dicas no jogo todo</span></button>
+        <button type="button" class="mode" role="radio" data-mode="facil"><b>Fácil</b><span>Vidas infinitas · dicas infinitas</span></button>
         <button type="button" class="mode" role="radio" data-mode="dificil"><b>Difícil</b><span>3 vidas por fase · 3 dicas no jogo todo</span></button>
       </div>
-      <div class="stats"><span class="chip" id="hintsLeft">Dicas restantes: 6 de 6</span><button type="button" class="linkbtn" id="resetBtn">Recomeçar o jogo</button></div>
+      <div class="stats">
+        <span class="chip" id="totStars">★ 0 / 15</span>
+        <span class="chip" id="totScore">0 pontos</span>
+        <span class="chip" id="hintsLeft">Dicas ilimitadas</span>
+        <label class="toggle" for="free"><input type="checkbox" id="free"> Liberar todas as fases</label>
+        <button type="button" class="linkbtn" id="resetBtn">Recomeçar o jogo</button>
+      </div>
       <svg id="route" viewBox="0 0 800 100" aria-hidden="true"></svg>
-    </header>
-    <div class="phases" id="phases"></div>
-    <div class="rules">
-      <div><b>Modos</b>Fácil: vidas infinitas e 6 dicas. Difícil: 3 vidas por fase e 3 dicas. As dicas valem para o jogo inteiro, não para cada fase.</div>
-      <div><b>Pontos</b>100 por acerto. Mais 50 se acertar de primeira sem pedir dica.</div>
-      <div><b>Estrelas</b>Sem erros: 3 estrelas. Até 2 erros: 2. Mais que isso: 1.</div>
-      <div><b>Respostas</b>Digite números como 12, −4 ou 3,5, pelo teclado ou pelos botões na tela.</div>
-    </div>
+      <div class="phases" id="phases"></div>
+      <div class="rules">
+        <div><b>Modos</b>Fácil: vidas e dicas infinitas. Difícil: 3 vidas por fase e só 3 dicas para o jogo inteiro.</div>
+        <div><b>Pontos</b>100 por acerto. Mais 50 se acertar de primeira sem pedir dica.</div>
+        <div><b>Estrelas</b>Sem erros: 3 estrelas. Até 2 erros: 2. Mais que isso: 1.</div>
+        <div><b>Respostas</b>Digite números como 12, −4 ou 3,5, pelo teclado ou pelos botões na tela.</div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Rota dos Polígonos · Enrico, Raul, Arthur e Pietro</span>
+      <span>Obras de Piet Mondrian, Wassily Kandinsky e Kazimir Malevich em domínio público, via Wikimedia Commons.</span>
+    </footer>
   </section>
 
   <!-- JOGO -->
@@ -658,12 +872,13 @@ const PHASES=[
 
 /* ===== progresso ===== */
 const KEY='rota-poligonos-v2';
-const MODES={facil:{nome:'Fácil',lives:Infinity,hints:6},dificil:{nome:'Difícil',lives:3,hints:3}};
+const MODES={facil:{nome:'Fácil',lives:Infinity,hints:Infinity},dificil:{nome:'Difícil',lives:3,hints:3}};
 let prog={stars:{},best:{},free:false,mode:'facil',hints:{facil:6,dificil:3}};
 try{const s=localStorage.getItem(KEY);if(s)prog=Object.assign(prog,JSON.parse(s))}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}};
 if(!MODES[prog.mode])prog.mode='facil';
-const hintsLeft=()=>prog.hints?.[prog.mode]??MODES[prog.mode].hints;
+const hintsLeft=()=>prog.mode==='facil'?Infinity:(prog.hints?.dificil??MODES.dificil.hints);
+const hintTxt=()=>isFinite(hintsLeft())?String(hintsLeft()):'∞';
 const unlocked=i=>i===0||prog.free||(prog.stars[i-1]||0)>0;
 const starStr=n=>[0,1,2].map(i=>`<span class="${i<n?'on':''}">★</span>`).join('');
 
@@ -674,7 +889,7 @@ function renderMap(){
   $('#totScore').textContent=`${pts.toLocaleString('pt-BR')} pontos`;
   $('#free').checked=!!prog.free;
   document.querySelectorAll('.mode').forEach(b=>b.setAttribute('aria-checked',b.dataset.mode===prog.mode));
-  $('#hintsLeft').textContent=`Dicas restantes: ${hintsLeft()} de ${MODES[prog.mode].hints}`;
+  $('#hintsLeft').textContent=isFinite(hintsLeft())?`Dicas restantes: ${hintsLeft()} de ${MODES[prog.mode].hints}`:'Dicas ilimitadas';
   const rp=PHASES.map((ph,i)=>[50+i*100,i%2?64:36]);
   $('#route').innerHTML=`<path class="route-line" d="M${rp.map(p=>p.join(' ')).join(' L')}"/>`+PHASES.map((ph,i)=>{const st=prog.stars[i]||0;
     return `<polygon class="rnode ${st?'done':unlocked(i)?'open':'lock'}" style="--c:var(--p${i});--cs:var(--p${i}s)" points="${polyPts(ph.n,rp[i][0],rp[i][1],24).map(p=>p.join(',')).join(' ')}"/>`}).join('');
@@ -700,7 +915,7 @@ $('#resetBtn').addEventListener('click',()=>{
   prog.stars={};prog.best={};prog.hints={facil:6,dificil:3};save();renderMap();
 });
 $('#free').addEventListener('change',e=>{prog.free=e.target.checked;save();renderMap()});
-function showMap(){$('#map').hidden=false;$('#play').hidden=true;renderMap();window.scrollTo(0,0)}
+function showMap(){$('#map').hidden=false;$('#play').hidden=true;renderMap();const j=$('#jogar');window.scrollTo(0,j?j.getBoundingClientRect().top+window.scrollY-12:0)}
 $('#backBtn').addEventListener('click',showMap);
 
 /* ===== jogo ===== */
@@ -717,7 +932,7 @@ function renderHud(){
   const inf=!isFinite(G.lives);
   $('#hearts').innerHTML=inf?'♥<span class="inf">∞</span>':[0,1,2].map(i=>`<span class="${i<G.lives?'':'lost'}">♥</span>`).join('');
   $('#hearts').setAttribute('aria-label',inf?'vidas infinitas':`${G.lives} vidas`);
-  $('#hudHints').textContent=`Dicas: ${hintsLeft()}`;
+  $('#hudHints').textContent=`Dicas: ${hintTxt()}`;
   {const n=PHASES[G.pi].n,ok=G.res.filter(r=>r===true).length,lit=Math.round(n*ok/G.qs.length),pp=polyPts(n,22,22,17);
    $('#pips').innerHTML=`<svg class="hudpoly" viewBox="0 0 44 44" width="40" height="40" aria-hidden="true">${pp.map((p,i)=>{const e=pp[(i+1)%n];return `<line class="${i<lit?'lit':''}" x1="${p[0]}" y1="${p[1]}" x2="${e[0]}" y2="${e[1]}"/>`}).join('')}</svg><span>${ok}/${G.qs.length}</span>`;}
   $('#score').textContent=`${G.score} pts`;
@@ -800,9 +1015,9 @@ function revealAnswer(){
   else {$('#ans').value=fm(q.answer);updateBal()}
 }
 $('#check').addEventListener('click',check);
-function setHintBtn(){const n=hintsLeft(),b=$('#hintBtn');b.disabled=n<=0;b.textContent=n>0?`Dica (${n} ${n===1?'restante':'restantes'})`:'Sem dicas';b.style.opacity=n>0?'':'.5'}
+function setHintBtn(){const n=hintsLeft(),b=$('#hintBtn');b.disabled=n<=0;b.textContent=!isFinite(n)?'Dica':n>0?`Dica (${n} ${n===1?'restante':'restantes'})`:'Sem dicas';b.style.opacity=n>0?'':'.5'}
 $('#hintBtn').addEventListener('click',()=>{if(hintsLeft()<=0||G.st.done||G.st.hint)return;const q=G.qs[G.i];G.st.hint=true;
-  prog.hints={...(prog.hints||{}),[prog.mode]:hintsLeft()-1};save();renderHud();setHintBtn();const h=$('#hintBox');h.innerHTML='<b>Dica:</b> '+q.hint;h.hidden=false;$('#hintBtn').hidden=true});
+  if(isFinite(hintsLeft()))prog.hints={...(prog.hints||{}),[prog.mode]:hintsLeft()-1};save();renderHud();setHintBtn();const h=$('#hintBox');h.innerHTML='<b>Dica:</b> '+q.hint;h.hidden=false;$('#hintBtn').hidden=true});
 $('#giveup').addEventListener('click',()=>{G.res[G.i]=false;feedback('info','Sem pontos nesta questão. A resposta certa está destacada.');revealAnswer();showSol();finishQ();renderHud()});
 $('#next').addEventListener('click',()=>next());
 $('#ans').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();G.st.done?next():check()}});
@@ -825,7 +1040,7 @@ function endPhase(win){
       <h2>${win?'Polígono fechado!':'Suas vidas acabaram'}</h2>
       ${win?`<div class="stars" aria-label="${stars} de 3 estrelas">${starStr(stars)}</div>`:''}
       <p>${win?(stars===3?'Nenhum erro. Fase perfeita.':`Você errou ${G.errors} ${G.errors===1?'vez':'vezes'}. Jogue de novo para tentar 3 estrelas: as questões mudam a cada partida.`)+(hasNext?' A próxima fase está liberada.':' Você completou a rota inteira!'):'Cada partida sorteia números novos. Leia as resoluções e tente de novo.'}</p>
-      <div class="num">${G.score} pontos · recorde da fase: ${prog.best[i]||0} · dicas restantes: ${hintsLeft()}</div>
+      <div class="num">${G.score} pontos · recorde da fase: ${prog.best[i]||0} · dicas: ${hintTxt()}</div>
       <div class="btns" style="margin-top:18px">
         ${win&&hasNext?`<button class="btn" id="rNext" type="button">Fase ${i+2}: ${PHASES[i+1].nome} →</button>`:''}
         <button class="btn ${win&&hasNext?'ghost':''}" id="rRetry" type="button">Jogar de novo</button>
@@ -886,6 +1101,63 @@ function burst(){
   }
 }
 
+
+/* ===== landing ===== */
+(function landing(){
+  const pp=(n,cx,cy,r)=>polyPts(n,cx,cy,r).map(p=>p.join(',')).join(' ');
+  $('#heroArt').innerHTML=`<rect class="ha-bg" width="480" height="480"/>
+    <rect class="ha-red" x="300" y="0" width="180" height="190"/><rect class="ha-blue" x="0" y="330" width="150" height="150"/><rect class="ha-yel" x="390" y="410" width="90" height="70"/>
+    <g class="ha-lines"><line x1="150" y1="0" x2="150" y2="480"/><line x1="300" y1="0" x2="300" y2="330"/><line x1="150" y1="190" x2="480" y2="190"/><line x1="0" y1="330" x2="480" y2="330"/><line x1="390" y1="330" x2="390" y2="480"/><line x1="390" y1="410" x2="480" y2="410"/></g>
+    <line class="thinl" x1="14" y1="466" x2="466" y2="14"/>
+    <path class="arc2" d="M330 300 A70 70 0 0 1 470 300"/>
+    <g class="float"><circle class="ring" cx="78" cy="96" r="54"/><circle class="disc" cx="78" cy="96" r="26"/></g>
+    <polygon class="t float d2" points="${pp(3,226,258,56)}"/>
+    <rect class="sq float d3" x="184" y="36" width="58" height="58"/>
+    <polygon class="q float d3" points="${pp(5,392,98,50)}"/>
+    <polygon class="h float" points="${pp(7,250,410,42)}"/>
+    <circle class="dotc float d2" cx="60" cy="250" r="12"/><circle class="dotc" cx="440" cy="262" r="7"/>`;
+
+  // arte concreta: padrão por regra
+  let c='<rect class="cb" width="240" height="240"/>';
+  for(let i=0;i<6;i++)for(let j=0;j<6;j++){const x=j*40,y=i*40,rot=((i+j)%4)*90;
+    c+=`<g transform="rotate(${rot} ${x+20} ${y+20})"><polygon class="${(i*j)%3?'c1f':'c2f'}" points="${x},${y} ${x+40},${y} ${x},${y+40}"/></g>`}
+  $('#concrete').innerHTML=c;
+
+  // orla de Balneário Camboriú (ilustração)
+  const base=300,H=[150,205,120,240,175,262,140,215,168,232,128,196,150],w=34;
+  let s=`<defs><linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="sk1"/><stop offset="1" class="sk2"/></linearGradient>
+    <pattern id="win" width="9" height="12" patternUnits="userSpaceOnUse"><rect x="2" y="3" width="5" height="6" class="winr"/></pattern></defs>
+    <rect width="640" height="360" fill="url(#skyg)"/><circle class="sun" cx="300" cy="64" r="28"/>`;
+  const HI=2;let hx=0;
+  H.forEach((h,i)=>{const x=18+i*36;if(i===HI)hx=x;
+    s+=`<rect class="bld ${i%2?'b2':''} ${i===HI?'hi':''}" x="${x}" y="${base-h}" width="${w}" height="${h}"/><rect x="${x+3}" y="${base-h+6}" width="${w-6}" height="${h-10}" fill="url(#win)"/>`});
+  let wh=`<g class="wheelspin"><circle class="wheel" cx="560" cy="205" r="72"/>`;
+  for(let k=0;k<12;k++){const a=k*Math.PI/6,x=r1(560+72*Math.cos(a)),y=r1(205+72*Math.sin(a));wh+=`<line class="spoke" x1="560" y1="205" x2="${x}" y2="${y}"/><circle class="cab" cx="${x}" cy="${y}" r="5.5"/>`}
+  wh+='</g>';
+  s+=`<line class="leg" x1="560" y1="205" x2="528" y2="${base}"/><line class="leg" x1="560" y1="205" x2="592" y2="${base}"/>`+wh;
+  s+=`<rect class="sand" x="0" y="${base}" width="640" height="34"/><rect class="sea" x="0" y="${base+34}" width="640" height="26"/>`;
+  s+=`<path class="wave" d="M0 ${base+44} q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/>`;
+  const tx=hx+w,ty=base-120,ex=tx+160;
+  s+=`<polygon class="shadow" points="${hx},${base} ${ex},${base} ${ex+10},${base+12} ${hx+6},${base+12}"/><line class="ray" x1="${tx}" y1="${ty}" x2="${ex}" y2="${base}"/>`;
+  s+=`<text x="${hx-6}" y="${base-60}" text-anchor="end">120 m</text><text x="${(tx+ex)/2}" y="${base+26}" text-anchor="middle">160 m</text><text x="${(tx+ex)/2+14}" y="${(ty+base)/2-8}">?</text>`;
+  $('#skyline').innerHTML=s;
+
+  // equipe
+  $('#team').innerHTML=['Enrico','Raul','Arthur','Pietro'].map((n,i)=>`<div class="member" style="--c:var(--p${i});--cs:var(--p${i}s)">
+    <svg viewBox="0 0 88 88" aria-hidden="true"><polygon points="${pp(i+3,44,46,38)}"/><text x="44" y="${i===0?52:48}" text-anchor="middle" dominant-baseline="middle" style="font-size:${i===0?22:30}px">${n[0]}</text></svg><b>${n}</b></div>`).join('');
+
+  // fotos com reserva
+  document.querySelectorAll('.art img').forEach(img=>{
+    const fig=img.closest('.art');let done=false;
+    const fb=()=>{if(done||img.naturalWidth)return;done=true;img.hidden=true;fig.querySelector('.rel').removeAttribute('hidden');fig.classList.add('fallback')};
+    img.addEventListener('error',fb);if(img.complete&&!img.naturalWidth)fb();setTimeout(fb,8000);
+  });
+
+  // atalhos para as fases
+  document.addEventListener('click',e=>{const b=e.target.closest('.phase-link');if(!b)return;const i=+b.dataset.go;
+    if(unlocked(i))startPhase(i);else{$('#jogar').scrollIntoView({behavior:'smooth'});}});
+  $('#shadowBtn').addEventListener('click',()=>{const o=$('#shadowSol');o.hidden=!o.hidden;$('#shadowBtn').textContent=o.hidden?'Ver resolução':'Esconder resolução'});
+})();
 renderMap();
 </script>
 </body>
