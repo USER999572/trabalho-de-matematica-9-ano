@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="description" content="Jogo de geometria e álgebra com 8 fases, do triângulo ao decágono.">
+<meta name="description" content="Jogo de geometria e álgebra com 5 fases, do triângulo ao heptágono.">
 <title>Rota dos Polígonos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -274,9 +274,9 @@ var{font-family:var(--mono); font-style:italic; background:var(--mark); padding:
   <!-- MAPA -->
   <section id="map" class="wrap">
     <header class="hero">
-      <div class="eyebrow">Geometria + álgebra · 8 fases</div>
+      <div class="eyebrow">Geometria + álgebra · 5 fases</div>
       <h1>Rota dos <span>Polígonos</span></h1>
-      <p>Cada fase é um polígono com um lado a mais que a anterior. Resolva os problemas, ganhe estrelas e libere a próxima figura, do triângulo ao decágono.</p>
+      <p>Cada fase é um polígono com um lado a mais que a anterior. Resolva os problemas, ganhe estrelas e libere a próxima figura, do triângulo ao heptágono.</p>
       <div class="stats">
         <span class="chip" id="totStars">★ 0 / 24</span>
         <span class="chip" id="totScore">0 pontos</span>
@@ -609,97 +609,6 @@ function qRightPer(){
     sol:[`h² = ${a}² + ${b}² = ${c*c}`,`h = ${c}`,`P = ${a} + ${b} + ${c} = ${a+b+c}`]};
 }
 
-// Fase 4 · Plano cartesiano
-function qPlot(){
-  const p=nz(-5,5),q=nz(-5,5);
-  return {type:'click',answer:[p,q],fig:grid('',true),prompt:`Marque o ponto <b>P${pt(p,q)}</b> no plano.`,
-    hint:'O primeiro número anda na horizontal (eixo x). O segundo anda na vertical (eixo y).',
-    sol:['Comece na origem (0, 0).',`Ande ${Math.abs(p)} para a ${p>0?'direita':'esquerda'}.`,`Ande ${Math.abs(q)} para ${q>0?'cima':'baixo'}.`,`Ponto: ${pt(p,q)}`]};
-}
-function qRect4(){
-  const x1=R(-5,1),x2=x1+R(2,5),y1=R(-5,1),y2=y1+R(2,4);
-  const inner=L(gx(x1),gy(y1),gx(x2),gy(y1),'ln')+L(gx(x2),gy(y1),gx(x2),gy(y2),'ln')+gPt(x1,y1,'A')+gPt(x2,y1,'B')+gPt(x2,y2,'C');
-  return {type:'click',answer:[x1,y2],fig:grid(inner,true),prompt:'A, B e C são cantos do retângulo ABCD. Marque o canto <b>D</b>.',
-    hint:'D fica bem acima de A e na mesma altura de C.',
-    sol:[`D tem o x de A: ${fm(x1)}`,`D tem o y de C: ${fm(y2)}`,`D = ${pt(x1,y2)}`]};
-}
-function qMid(){
-  let x1,y1,x2,y2;do{x1=R(-5,1);y1=R(-4,4);x2=x1+2*R(1,3);y2=y1+2*R(-2,2)}while(x2>6||Math.abs(y2)>6);
-  const mx=(x1+x2)/2,my=(y1+y2)/2;
-  return {type:'click',answer:[mx,my],fig:grid(L(gx(x1),gy(y1),gx(x2),gy(y2),'ln')+gPt(x1,y1,'A')+gPt(x2,y2,'B'),true),
-    prompt:'Marque o <b>ponto do meio</b> do segmento AB.',hint:'Ande de A até B contando os quadradinhos e pare na metade.',
-    sol:[`M = ((${fm(x1)} + ${par(x2)}) ÷ 2, (${fm(y1)} + ${par(y2)}) ÷ 2)`,`M = ${pt(mx,my)}`]};
-}
-function qReflect(){
-  const p=nz(-5,5),q=nz(-5,5),k=pick(['y','x']);
-  const ans=k==='y'?[-p,q]:[p,-q];
-  const regra=k==='y'?'Espelho no eixo y: só o sinal de x muda.':'Espelho no eixo x: só o sinal de y muda.';
-  return {type:'click',answer:ans,fig:grid(gPt(p,q,'P'),true),prompt:`Imagine que o eixo <b>${k}</b> é um espelho. Marque o reflexo de P.`,hint:regra,
-    sol:[`P = ${pt(p,q)}`,regra,`Reflexo = ${pt(...ans)}`]};
-}
-function qTranslate(){
-  let p,q,dx,dy;do{p=R(-4,4);q=R(-4,4);dx=nz(-3,3);dy=nz(-3,3)}while(Math.abs(p+dx)>6||Math.abs(q+dy)>6);
-  return {type:'click',answer:[p+dx,q+dy],fig:grid(gPt(p,q,'P'),true),
-    prompt:`P andou ${Math.abs(dx)} para a ${dx>0?'direita':'esquerda'} e ${Math.abs(dy)} para ${dy>0?'cima':'baixo'}. Marque onde P chegou.`,
-    hint:'Direita/esquerda muda o x. Cima/baixo muda o y.',
-    sol:[`P = ${pt(p,q)}`,`x: ${fm(p)} ${dx>0?'+':M} ${Math.abs(dx)} = ${fm(p+dx)}`,`y: ${fm(q)} ${dy>0?'+':M} ${Math.abs(dy)} = ${fm(q+dy)}`,`Chegada: ${pt(p+dx,q+dy)}`]};
-}
-function gridRect(){const w=R(2,5),h=R(2,4),x1=R(-5,5-w),y1=R(-5,5-h);return {w,h,x1,y1,x2:x1+w,y2:y1+h}}
-const rectOnGrid=r=>poly([[gx(r.x1),gy(r.y1)],[gx(r.x2),gy(r.y1)],[gx(r.x2),gy(r.y2)],[gx(r.x1),gy(r.y2)]],'shape gridfill')+gPt(r.x1,r.y1)+gPt(r.x2,r.y1)+gPt(r.x2,r.y2)+gPt(r.x1,r.y2);
-function qGridArea(){
-  const r=gridRect();
-  return {type:'num',answer:r.w*r.h,label:'A =',unit:'quadradinhos',fig:grid(rectOnGrid(r)),
-    prompt:'Cada quadradinho do plano tem lado 1. Qual é a <b>área</b> do retângulo pintado?',
-    hint:'Conte quantos quadradinhos cabem na base e na altura e multiplique.',
-    sol:[`base: de x = ${fm(r.x1)} até x = ${fm(r.x2)} → ${r.w}`,`altura: de y = ${fm(r.y1)} até y = ${fm(r.y2)} → ${r.h}`,`A = ${r.w} × ${r.h} = ${r.w*r.h}`]};
-}
-function qGridPer(){
-  const r=gridRect();
-  return {type:'num',answer:2*(r.w+r.h),label:'P =',fig:grid(rectOnGrid(r)),
-    prompt:'Cada quadradinho do plano tem lado 1. Qual é o <b>perímetro</b> do retângulo pintado?',
-    hint:'Conte os lados de quadradinho em volta do retângulo: base + altura + base + altura.',
-    sol:[`base = ${r.w}, altura = ${r.h}`,`P = ${r.w} + ${r.h} + ${r.w} + ${r.h} = ${2*(r.w+r.h)}`]};
-}
-
-// Fase 5 · Retas e funções
-const MS=[-2,-1,1,2];
-function qSlope(){
-  let m,b,x1,x2,y1,y2;do{m=pick(MS);b=R(-3,3);x1=R(-4,2);x2=x1+R(1,2);y1=m*x1+b;y2=m*x2+b}while(Math.abs(y1)>5||Math.abs(y2)>5||x2>5);
-  return {type:'num',answer:m,label:'m =',fig:grid(gLine(m,b,'l1')+gPt(x1,y1,'A')+gPt(x2,y2,'B')),
-    prompt:'Qual é a inclinação <var>m</var> da reta? Ela diz quanto a reta sobe (ou desce) a cada 1 passo para a direita.',
-    hint:'Conte: quantos quadradinhos a reta sobe ou desce quando anda 1 para a direita? Se desce, m é negativo.',
-    sol:[`A${pt(x1,y1)} e B${pt(x2,y2)}`,`m = (${fm(y2)} ${M} ${par(y1)}) ÷ (${fm(x2)} ${M} ${par(x1)})`,`m = ${fm(y2-y1)} ÷ ${fm(x2-x1)} = ${fm(m)}`]};
-}
-function qB(){
-  const m=pick(MS),b=nz(-5,5);
-  return {type:'num',answer:b,label:'b =',fig:grid(gLine(m,b,'l1')),
-    prompt:'A reta tem equação y = mx + <var>b</var>. Qual é o valor de <var>b</var>?',
-    hint:'b é onde a reta corta o eixo y (a linha vertical).',
-    sol:['Quando x = 0, temos y = b.',`A reta corta o eixo y em ${pt(0,b)}.`,`b = ${fm(b)}`]};
-}
-function qLaw(){
-  let m,b,y2;do{m=pick([1,2]);b=R(-3,3);y2=m+b}while(Math.abs(y2)>6);
-  const k=pick([4,5,10]),y=m*k+b;
-  return {type:'num',answer:y,label:'y =',fig:grid(gLine(m,b,'l1')+gPt(0,b,'A')+gPt(1,y2,'B')),
-    prompt:`A reta é y = ${lin(m,b)}. Quanto vale <var>y</var> quando x = ${k}?`,
-    hint:'Troque o x pelo número e faça a conta.',
-    sol:[`y = ${subst(m,b,k)}`,`y = ${fm(y)}`]};
-}
-function qRootClick(){
-  const m=pick([1,2,-1]),r=nz(-5,5),b=-m*r;
-  return {type:'click',answer:[r,0],fig:grid('',true),
-    prompt:`Marque o ponto onde a reta y = ${lin(m,b)} corta o <b>eixo x</b>.`,
-    hint:'No eixo x, y vale 0. Que x deixa a conta igual a 0?',
-    sol:['No eixo x, y = 0.',...solveLin(m,b,0),`Ponto: ${pt(r,0)}`]};
-}
-function qEvalClick(){
-  let m,b,k,y;do{m=pick([1,2,-1]);b=R(-3,3);k=nz(-3,3);y=m*k+b}while(Math.abs(y)>6);
-  return {type:'click',answer:[k,y],fig:grid('',true),
-    prompt:`Marque o ponto da reta y = ${lin(m,b)} que tem x = ${fm(k)}.`,
-    hint:'Troque x na equação para descobrir o y do ponto.',
-    sol:[`y = ${subst(m,b,k)}`,`y = ${fm(y)}`,`Ponto: ${pt(k,y)}`]};
-}
-
 // Fase 6 · Sistemas
 function sysData(range,bmax){
   let p,q,m1,m2,b1,b2;do{p=R(-range,range);q=R(-range,range);m1=pick([-2,-1,0,1,2]);m2=pick([-2,-1,1,2]);b1=q-m1*p;b2=q-m2*p}while(m1===m2||Math.abs(b1)>bmax||Math.abs(b2)>bmax);
@@ -749,70 +658,16 @@ function qTriple(){
     sol:[`x + ${k}x = ${S}`,`${k+1}x = ${S}`,`x = ${S} ÷ ${k+1} = ${a}`]};
 }
 
-// Fase 7 · Círculos
-function circFig(mode,label,inside=''){
-  const cx=200,cy=128,r=100;
-  let s=`<circle class="shape" cx="${cx}" cy="${cy}" r="${r}"/>`+dot(cx,cy);
-  if(mode==='r') s+=L(cx,cy,cx+r,cy)+T(cx+r/2,cy-16,label,'c1');
-  else s+=L(cx-r,cy,cx+r,cy)+T(cx,cy-16,label,'c1');
-  if(inside) s+=T(cx,cy+42,inside,'c2');
-  return svg(400,256,s);
-}
-function qCircArea(){
-  const r=R(1,6);
-  return {type:'num',answer:r*r,label:'k =',fig:circFig('r',`raio ${r}`),
-    prompt:'A área deste círculo é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Área do círculo = π × raio × raio.',
-    sol:['A = π × r × r',`A = π × ${r} × ${r} = ${r*r}π`,`k = ${r*r}`]};
-}
-function qCircLen(){
-  const d=R(2,12);
-  return {type:'num',answer:d,label:'k =',fig:circFig('d',`diâmetro ${d}`),
-    prompt:'O comprimento (a volta) desta circunferência é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Comprimento = π × diâmetro.',
-    sol:['C = π × d',`C = π × ${d} = ${d}π`,`k = ${d}`]};
-}
-function qCircLenR(){
-  const r=R(1,8);
-  return {type:'num',answer:2*r,label:'k =',fig:circFig('r',`raio ${r}`),
-    prompt:'O comprimento desta circunferência é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'O diâmetro é o dobro do raio. Comprimento = π × diâmetro.',
-    sol:[`d = 2 × ${r} = ${2*r}`,`C = π × ${2*r} = ${2*r}π`,`k = ${2*r}`]};
-}
-function qCircR(){
-  const r=R(1,6);
-  return {type:'num',answer:r,label:'r =',fig:circFig('r','?',`A = ${r*r}π`),bal:{l:v=>v*v,lt:'r × r',r:r*r},
-    prompt:`A área deste círculo é ${r*r}π. Quanto mede o raio?`,hint:'Qual número vezes ele mesmo dá o valor antes do π?',
-    sol:[`π × r × r = ${r*r}π`,`r × r = ${r*r}`,`r = ${r}`]};
-}
-function qSector(){
-  const [th,rs,fr]=pick([[90,[2,4,6],'1/4'],[180,[2,4,6,8],'1/2']]);
-  const r=pick(rs),k=th/360*r*r,cx=200,cy=128,R0=100,[x1,y1]=P(cx,cy,R0,0),[x2,y2]=P(cx,cy,R0,th);
-  let s=`<circle class="faint" cx="${cx}" cy="${cy}" r="${R0}"/><path class="shape" d="M${cx} ${cy} L${x1} ${y1} A${R0} ${R0} 0 0 0 ${x2} ${y2} Z"/>`;
-  s+=arc(cx,cy,24,0,th,'k2')+T(...P(cx,cy,46,th/2),th+'°','c2')+T(cx+R0/2,cy+16,String(r),'c1')+dot(cx,cy);
-  return {type:'num',answer:k,label:'k =',fig:svg(400,256,s),
-    prompt:`A parte pintada é ${th===90?'um quarto':'metade'} de um círculo de raio ${r}. Sua área é <var>k</var>·π. Quanto vale <var>k</var>?`,
-    hint:`Calcule a área do círculo inteiro e pegue ${th===90?'um quarto':'a metade'}.`,
-    sol:[`Círculo inteiro: π × ${r} × ${r} = ${r*r}π`,`Parte pintada: ${r*r}π × ${fr} = ${fm(k)}π`]};
-}
-function qWheel(){
-  const r=pick([5,10,20,50]),n=R(1,2),v=6*r*n;
-  return {type:'num',answer:v,label:'d =',unit:'cm',fig:circFig('r',`${r} cm`),
-    prompt:`Uma roda de raio ${r} cm dá ${n} ${n>1?'voltas completas':'volta completa'}. Quantos centímetros ela anda? Use π = 3.`,
-    hint:'Uma volta = 2 × π × raio.',
-    sol:[`1 volta = 2 × 3 × ${r} = ${6*r} cm`,...(n>1?[`${n} voltas = ${6*r} × ${n} = ${v} cm`]:[])]};
-}
-
 const PHASES=[
   {n:3,forma:'Triângulo',nome:'Ângulos',desc:'Retas, ângulos opostos e a soma 180° do triângulo.',gens:[qSupl,qComp,qVert,qTri,qTriIso]},
   {n:4,forma:'Quadrado',nome:'Perímetro e área',desc:'Some os lados e multiplique: retângulos, quadrados, triângulos e terrenos em L.',gens:[qRectPer,qRectArea,qSqPer,qSqArea,qTriArea,qTriPer,qLShape,qSqSide,qRectMissing]},
   {n:5,forma:'Pentágono',nome:'Pitágoras',desc:'a² + b² = c² com números pequenos, mais área e perímetro.',gens:[qHyp,qLeg,qLadder,qDiag,qRightArea,qRightPer]},
-  {n:6,forma:'Hexágono',nome:'Plano cartesiano',desc:'Marque pontos e conte quadradinhos para achar área e perímetro.',gens:[qPlot,qRect4,qMid,qReflect,qTranslate,qGridArea,qGridPer]},
-  {n:7,forma:'Heptágono',nome:'Retas e funções',desc:'Inclinação, onde a reta corta os eixos e y = mx + b.',gens:[qSlope,qB,qLaw,qRootClick,qEvalClick]},
-  {n:8,forma:'Octógono',nome:'Sistemas',desc:'Duas retas, um ponto em comum. Carros, motos e barras.',gens:[qSysClick,qSysSum,qSysSubst,qCars,qTriple]},
-  {n:9,forma:'Eneágono',nome:'Círculos',desc:'Comprimento e área do círculo em função de π.',gens:[qCircArea,qCircLen,qCircLenR,qCircR,qSector,qWheel]},
-  {n:10,forma:'Decágono',nome:'Desafio final',desc:'Tudo misturado: 8 questões.',gens:'all',count:8},
+  {n:6,forma:'Hexágono',nome:'Sistemas',desc:'Duas retas, um ponto em comum. Carros, motos e barras.',gens:[qSysClick,qSysSum,qSysSubst,qCars,qTriple]},
+  {n:7,forma:'Heptágono',nome:'Desafio final',desc:'Uma questão de cada fase: ângulos, área e perímetro, Pitágoras e sistemas.',gens:'all'},
 ];
 
 /* ===== progresso ===== */
-const KEY='rota-poligonos-v1';
+const KEY='rota-poligonos-v2';
 const MODES={facil:{nome:'Fácil',lives:Infinity,hints:6},dificil:{nome:'Difícil',lives:3,hints:3}};
 let prog={stars:{},best:{},free:false,mode:'facil',hints:{facil:6,dificil:3}};
 try{const s=localStorage.getItem(KEY);if(s)prog=Object.assign(prog,JSON.parse(s))}catch(e){}
@@ -862,7 +717,7 @@ $('#backBtn').addEventListener('click',showMap);
 let G=null;
 function startPhase(i){
   const ph=PHASES[i];
-  const gens=ph.gens==='all'?shuffle(PHASES.slice(0,7).flatMap(p=>p.gens)).slice(0,ph.count):shuffle(ph.gens.slice()).slice(0,5);
+  const gens=ph.gens==='all'?PHASES.slice(0,-1).map(p=>pick(p.gens)):shuffle(ph.gens.slice()).slice(0,5);
   G={pi:i,qs:gens.map(g=>g()),i:0,lives:MODES[prog.mode].lives,score:0,errors:0,res:[]};$('#play').dataset.ph=i;
   $('#map').hidden=true;$('#play').hidden=false;$('#qa').hidden=false;$('#result').hidden=true;
   $('#phTitle').textContent=`Fase ${i+1} · ${ph.nome} · ${MODES[prog.mode].nome}`;
