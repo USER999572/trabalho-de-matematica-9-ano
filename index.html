@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Jogo de geometria e álgebra com 8 fases, do triângulo ao decágono.">
+<title>Rota dos Polígonos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: caderno de desenho técnico — mapa de fases em grade, depois tela de jogo com figura à esquerda e questão à direita */
+:root{
+  --paper:#ECEFF3; --surface:#FFFFFF; --ink:#18202E; --muted:#5A6577; --line:#C8D0DB; --grid:#DFE4EB;
+  --cobalt:#2747D6; --cobalt-soft:#DEE5FF; --on-cobalt:#FFFFFF;
+  --amber:#B87A00; --mark:#FFE07A; --rose:#C2366B;
+  --good:#1D7F4C; --good-soft:#DDF3E6; --bad:#C3302C; --bad-soft:#FBE3E1;
+  --display:'Unbounded', 'Arial Black', system-ui, sans-serif;
+  --body:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0E121A; --surface:#161C27; --ink:#E5E9F0; --muted:#97A1B3; --line:#2B3444; --grid:#202838;
+  --cobalt:#8199FF; --cobalt-soft:#1E2850; --on-cobalt:#0E121A;
+  --amber:#F0B93A; --mark:#5A4A12; --rose:#FF7EA8;
+  --good:#52C78E; --good-soft:#15301F; --bad:#FF6F69; --bad-soft:#3A1715; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --paper:#0E121A; --surface:#161C27; --ink:#E5E9F0; --muted:#97A1B3; --line:#2B3444; --grid:#202838;
+  --cobalt:#8199FF; --cobalt-soft:#1E2850; --on-cobalt:#0E121A;
+  --amber:#F0B93A; --mark:#5A4A12; --rose:#FF7EA8;
+  --good:#52C78E; --good-soft:#15301F; --bad:#FF6F69; --bad-soft:#3A1715; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  background-color:var(--paper);
+  background-image:radial-gradient(var(--line) 1px, transparent 1.2px);
+  background-size:24px 24px;
+  color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:24px 56px;
+}
+.wrap{max-width:1080px; margin:0 auto; display:grid; gap:28px}
+h1,h2,h3{font-family:var(--display); text-wrap:balance; margin:0; line-height:1.15}
+button{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--cobalt); outline-offset:3px; border-radius:6px}
+var{font-family:var(--mono); font-style:italic; background:var(--mark); padding:0 .25em; border-radius:4px; color:var(--ink)}
+
+/* ---------- mapa ---------- */
+.hero{display:grid; gap:14px; padding-top:8px}
+.eyebrow{font-family:var(--mono); font-size:12.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.hero h1{font-size:clamp(34px, 7vw, 64px); font-weight:700; letter-spacing:-.02em}
+.hero h1 span{color:var(--cobalt)}
+.hero p{margin:0; max-width:62ch; color:var(--muted)}
+.stats{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.chip{font-family:var(--mono); font-size:14px; padding:6px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface); font-variant-numeric:tabular-nums}
+.toggle{display:inline-flex; align-items:center; gap:8px; font-size:15px; color:var(--muted); cursor:pointer}
+.toggle input{width:18px; height:18px; accent-color:var(--cobalt)}
+
+.phases{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap:14px}
+.card{display:grid; grid-template-columns:72px minmax(0,1fr); gap:14px; align-items:start; text-align:left;
+  background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px; cursor:pointer;
+  transition:transform .15s ease, border-color .15s ease}
+.card:hover:not(:disabled){transform:translateY(-2px); border-color:var(--cobalt)}
+.card:disabled{cursor:not-allowed; background:transparent; border-style:dashed}
+.card:disabled .poly{fill:none; stroke:var(--muted); stroke-dasharray:4 4}
+.card:disabled h3,.card:disabled .desc{color:var(--muted)}
+.card .poly{fill:var(--cobalt-soft); stroke:var(--cobalt); stroke-width:3; stroke-linejoin:round}
+.card.done .poly{fill:var(--cobalt)}
+.card h3{font-size:17px; font-weight:500; margin-top:2px}
+.card .desc{font-size:14.5px; color:var(--muted); margin:6px 0 8px; line-height:1.4}
+.stars{font-size:17px; letter-spacing:2px; color:var(--line)}
+.stars .on{color:var(--amber)}
+.lockmsg{font-family:var(--mono); font-size:12.5px; color:var(--muted)}
+
+.rules{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:18px; border-top:1px solid var(--line); padding-top:20px; font-size:15px; color:var(--muted)}
+.rules b{display:block; color:var(--ink); font-family:var(--mono); font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px}
+
+/* ---------- jogo ---------- */
+.hud{display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; justify-content:space-between}
+.hud-left{display:flex; align-items:center; gap:14px; min-width:0}
+.back{border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:6px 14px; cursor:pointer; font-size:15px}
+.back:hover{border-color:var(--cobalt)}
+.hud h2{font-size:clamp(17px, 3vw, 22px); font-weight:500}
+.hud-right{display:flex; align-items:center; gap:16px; font-family:var(--mono); font-variant-numeric:tabular-nums}
+.hearts{font-size:22px; letter-spacing:2px; color:var(--rose)}
+.hearts .lost{color:var(--line)}
+.pips{display:flex; gap:5px}
+.pip{width:14px; height:14px; border:2px solid var(--line); border-radius:3px; transform:rotate(45deg)}
+.pip.now{border-color:var(--cobalt)}
+.pip.ok{background:var(--cobalt); border-color:var(--cobalt)}
+.pip.miss{background:var(--line)}
+.score{font-size:15px}
+
+.play-grid{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:24px; align-items:start}
+@media (max-width:780px){ .play-grid{grid-template-columns:minmax(0,1fr)} }
+.stage{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; display:grid; place-items:center; min-height:280px; transition:border-color .2s}
+.stage.flash-ok{border-color:var(--good); box-shadow:0 0 0 3px var(--good-soft)}
+.stage.shake{animation:shake .38s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@media (prefers-reduced-motion: reduce){ .stage.shake{animation:none} .card{transition:none} .draw{animation:none!important; stroke-dashoffset:0!important} }
+
+.fig{width:100%; max-width:520px; height:auto; display:block; overflow:hidden}
+.fig .ln{stroke:var(--ink); stroke-width:2.5; fill:none; stroke-linecap:round; stroke-linejoin:round}
+.fig .thin{stroke:var(--ink); stroke-width:1.5; fill:none}
+.fig .dash{stroke:var(--muted); stroke-width:2; stroke-dasharray:6 5; fill:none}
+.fig .shape{fill:var(--cobalt-soft); stroke:var(--ink); stroke-width:2.5; stroke-linejoin:round}
+.fig .faint{fill:none; stroke:var(--line); stroke-width:2; stroke-dasharray:5 5}
+.fig .arc{fill:none; stroke-width:3}
+.fig .k1{stroke:var(--cobalt)} .fig .k2{stroke:var(--amber)} .fig .k3{stroke:var(--rose)}
+.fig text{font-family:var(--mono); font-size:16px; font-weight:500; fill:var(--ink); paint-order:stroke; stroke:var(--surface); stroke-width:5px; stroke-linejoin:round}
+.fig text.c1{fill:var(--cobalt)} .fig text.c2{fill:var(--amber)} .fig text.c3{fill:var(--rose)}
+.fig text.small{font-size:12px; fill:var(--muted); font-weight:400; stroke-width:4px}
+.fig text.big{font-size:20px; font-weight:600}
+.fig .dot{fill:var(--ink)}
+.fig .wall{fill:var(--line); stroke:var(--muted); stroke-width:1.5}
+.fig .ladder{stroke:var(--amber); stroke-width:5; stroke-linecap:round}
+.fig .gl{stroke:var(--grid); stroke-width:1}
+.fig .ax{stroke:var(--muted); stroke-width:1.8}
+.fig .gline{stroke-width:3; fill:none}
+.fig .gline.l1{stroke:var(--cobalt)} .fig .gline.l2{stroke:var(--amber)}
+.fig .pt{fill:var(--ink)}
+.fig .pick{fill:var(--cobalt); stroke:var(--surface); stroke-width:2.5}
+.fig .pick.ok{fill:var(--good)} .fig .pick.bad{fill:var(--bad)}
+.fig .ans{fill:none; stroke:var(--good); stroke-width:3}
+.fig .guide{stroke:var(--cobalt); stroke-width:1.5; stroke-dasharray:4 4}
+.fig .bar{fill:var(--cobalt-soft); stroke:var(--cobalt); stroke-width:2}
+.fig .bar2{fill:var(--mark); stroke:var(--amber); stroke-width:2}
+.fig .body{fill:var(--cobalt-soft); stroke:var(--ink); stroke-width:2}
+.fig .tire{fill:var(--ink)}
+#board{cursor:crosshair; touch-action:manipulation}
+
+.eqbox{font-family:var(--mono); font-size:clamp(20px, 4vw, 28px); display:grid; gap:10px; padding:10px 0 10px 22px; border-left:3px solid var(--ink); border-radius:16px 0 0 16px}
+.eqbox .c1{color:var(--cobalt)} .eqbox .c2{color:var(--amber)}
+
+.panel{display:grid; gap:16px; min-width:0}
+.prompt{font-size:clamp(18px, 2.4vw, 21px); line-height:1.45; margin:0}
+.prompt .eq{display:inline-block; font-family:var(--mono); font-size:.95em; margin:6px 14px 0 0}
+.prompt .eq.c1{color:var(--cobalt)} .prompt .eq.c2{color:var(--amber)}
+.answer{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.answer label{font-family:var(--mono); font-size:18px}
+#ans{font-family:var(--mono); font-size:20px; width:9ch; padding:10px 12px; border:2px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-variant-numeric:tabular-nums}
+#ans:focus{border-color:var(--cobalt); outline:none}
+.unit{font-family:var(--mono); color:var(--muted)}
+.readout{font-family:var(--mono); font-size:17px; color:var(--muted)}
+.readout b{color:var(--ink)}
+.btns{display:flex; flex-wrap:wrap; gap:10px}
+.btn{border:2px solid var(--cobalt); background:var(--cobalt); color:var(--on-cobalt); font-weight:700; padding:10px 20px; border-radius:10px; cursor:pointer; font-size:16px}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent; color:var(--cobalt)}
+.hint{font-size:16px; padding:12px 14px; border-radius:10px; background:var(--mark); color:var(--ink)}
+.fb{font-size:16px; padding:12px 14px; border-radius:10px; font-weight:700}
+.fb.good{background:var(--good-soft); color:var(--good)}
+.fb.bad{background:var(--bad-soft); color:var(--bad)}
+.fb.info{background:var(--cobalt-soft); color:var(--ink); font-weight:400}
+.sol{border-top:1px dashed var(--line); padding-top:12px}
+.sol h4{margin:0 0 8px; font-family:var(--mono); font-size:12.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:500}
+.sol ol{margin:0; padding-left:1.4em; display:grid; gap:6px; font-family:var(--mono); font-size:15.5px; font-variant-numeric:tabular-nums}
+.sol li::marker{color:var(--muted)}
+
+.result{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:clamp(20px, 4vw, 40px); display:grid; grid-template-columns:auto minmax(0,1fr); gap:28px; align-items:center}
+@media (max-width:620px){ .result{grid-template-columns:minmax(0,1fr); justify-items:start} }
+.result svg{width:180px; max-width:100%; height:auto}
+.result .poly{fill:none; stroke:var(--cobalt); stroke-width:5; stroke-linejoin:round}
+.result .poly.fill{fill:var(--cobalt-soft)}
+.draw{stroke-dasharray:1000; stroke-dashoffset:1000; animation:draw 1.4s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.result h2{font-size:clamp(24px, 4vw, 36px); font-weight:700}
+.result .stars{font-size:30px}
+.result p{margin:6px 0 16px; color:var(--muted); max-width:52ch}
+.result .num{font-family:var(--mono); font-size:15px; font-variant-numeric:tabular-nums; color:var(--ink)}
+
+/* ---------- cores por fase ---------- */
+:root{--p0:#3B4BDB;--p0s:#E0E4FF;--p1:#0E8A7E;--p1s:#D4F2EE;--p2:#7A3FD1;--p2s:#EDE3FF;--p3:#1F6FD1;--p3s:#DCEBFF;--p4:#2F8A3A;--p4s:#DFF2DC;--p5:#0A7C93;--p5s:#D5F0F5;--p6:#C2366B;--p6s:#FBE0EA;--p7:#1B2433;--p7s:#E2E6EE}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--p0:#8B98FF;--p0s:#1F2554;--p1:#4FD1C1;--p1s:#0F2E2B;--p2:#B794FF;--p2s:#2A1E47;--p3:#6FB0FF;--p3s:#142A47;--p4:#7BD67B;--p4s:#17301A;--p5:#55C8E3;--p5s:#0F2B33;--p6:#FF7EA8;--p6s:#3A1626;--p7:#E5E9F0;--p7s:#252D3B} }
+:root[data-theme="dark"]{--p0:#8B98FF;--p0s:#1F2554;--p1:#4FD1C1;--p1s:#0F2E2B;--p2:#B794FF;--p2s:#2A1E47;--p3:#6FB0FF;--p3s:#142A47;--p4:#7BD67B;--p4s:#17301A;--p5:#55C8E3;--p5s:#0F2B33;--p6:#FF7EA8;--p6s:#3A1626;--p7:#E5E9F0;--p7s:#252D3B}
+#play[data-ph="0"]{--cobalt:var(--p0);--cobalt-soft:var(--p0s)}
+#play[data-ph="1"]{--cobalt:var(--p1);--cobalt-soft:var(--p1s)}
+#play[data-ph="2"]{--cobalt:var(--p2);--cobalt-soft:var(--p2s)}
+#play[data-ph="3"]{--cobalt:var(--p3);--cobalt-soft:var(--p3s)}
+#play[data-ph="4"]{--cobalt:var(--p4);--cobalt-soft:var(--p4s)}
+#play[data-ph="5"]{--cobalt:var(--p5);--cobalt-soft:var(--p5s)}
+#play[data-ph="6"]{--cobalt:var(--p6);--cobalt-soft:var(--p6s)}
+#play[data-ph="7"]{--cobalt:var(--p7);--cobalt-soft:var(--p7s)}
+
+/* mapa colorido */
+.card{--c:var(--cobalt);--cs:var(--cobalt-soft)}
+.card .poly{fill:var(--cs); stroke:var(--c); transform-box:fill-box; transform-origin:center; transition:transform .3s ease}
+.card.done .poly{fill:var(--c)}
+.card:hover:not(:disabled){border-color:var(--c)}
+.card:hover:not(:disabled) .poly{transform:rotate(12deg) scale(1.06)}
+.card .eyebrow{color:var(--c)}
+.card:disabled .eyebrow{color:var(--muted)}
+#route{width:100%; max-width:780px; height:auto; margin-top:6px}
+.route-line{fill:none; stroke:var(--muted); stroke-width:3; stroke-dasharray:1 9; stroke-linecap:round}
+.rnode{stroke-width:3; stroke-linejoin:round}
+.rnode.done{fill:var(--c); stroke:var(--c)}
+.rnode.open{fill:var(--cs); stroke:var(--c)}
+.rnode.lock{fill:var(--paper); stroke:var(--line); stroke-dasharray:4 4}
+
+/* figuras que se desenham */
+.stage{position:relative; overflow:hidden}
+.fig .ln, .fig .shape, .fig .arc, .fig .gline, .fig .ladder{stroke-dasharray:1400; stroke-dashoffset:1400; animation:draw 1.1s cubic-bezier(.4,0,.2,1) forwards}
+.fig .shape{animation:draw 1.1s cubic-bezier(.4,0,.2,1) forwards, fillin .6s .35s both}
+.fig .arc{animation-delay:.45s}
+.fig text, .eqbox > div{animation:fadein .5s .5s both}
+.eqbox > div:nth-child(2){animation-delay:.75s}
+@keyframes fillin{from{fill-opacity:0}}
+@keyframes fadein{from{opacity:0; transform:translateY(4px)}}
+.fig .ghost{fill:none; stroke:var(--cobalt); stroke-width:2; stroke-dasharray:3 3}
+.fig text.ghost-t{font-size:13px; fill:var(--cobalt); animation:none}
+.bit{position:absolute; width:14px; height:14px; margin:-7px; pointer-events:none; animation:bit .95s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes bit{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)); opacity:0}}
+
+/* HUD: o polígono da fase vai se fechando */
+.pips{align-items:center; gap:8px; font-size:14px}
+.hudpoly line{stroke:var(--line); stroke-width:4; stroke-linecap:round; transition:stroke .5s}
+.hudpoly line.lit{stroke:var(--cobalt)}
+
+/* balança */
+.balance{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:grid; gap:4px; transition:border-color .3s, box-shadow .3s}
+.balance.ok{border-color:var(--good); box-shadow:0 0 0 3px var(--good-soft)}
+.bal-head{display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 10px; align-items:baseline}
+.bal-msg{font-size:14px; font-weight:700; color:var(--muted)}
+.balance.ok .bal-msg{color:var(--good)}
+.balsvg{width:100%; max-width:380px; height:auto; justify-self:center; overflow:visible}
+.balsvg .fulcrum{fill:var(--cobalt-soft); stroke:var(--ink); stroke-width:2.5; stroke-linejoin:round}
+.balsvg .foot{fill:var(--ink)}
+.balsvg .beam{transform-box:view-box; transform-origin:220px 62px; transition:transform .55s cubic-bezier(.3,1.5,.5,1)}
+.balsvg .beam line{stroke:var(--ink); stroke-width:6; stroke-linecap:round}
+.balsvg .beam circle{fill:var(--ink)}
+.balsvg .pan{transition:transform .55s cubic-bezier(.3,1.5,.5,1)}
+.balsvg .pan line{stroke:var(--muted); stroke-width:1.5}
+.balsvg #panL path{fill:var(--cobalt-soft); stroke:var(--cobalt); stroke-width:2.5}
+.balsvg #panR path{fill:var(--mark); stroke:var(--amber); stroke-width:2.5}
+.balsvg text{font-family:var(--mono); font-size:22px; font-weight:600; fill:var(--ink)}
+.bal-eq{display:flex; flex-wrap:wrap; justify-content:center; gap:2px 12px; font-family:var(--mono); font-size:15px}
+.bal-eq .c1{color:var(--cobalt)} .bal-eq .c2{color:var(--amber)} .bal-eq .vs{color:var(--muted)}
+
+/* teclado */
+.keypad{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; max-width:340px}
+.keypad button{font-family:var(--mono); font-size:20px; padding:10px 0; border-radius:10px; border:1px solid var(--line); background:var(--surface); cursor:pointer; box-shadow:0 3px 0 var(--line); transition:transform .08s, box-shadow .08s}
+.keypad button:hover{border-color:var(--cobalt)}
+.keypad button:active{transform:translateY(3px); box-shadow:0 0 0 var(--line)}
+.keypad .wide{grid-column:span 2}
+.keypad .fn{color:var(--cobalt); font-weight:600}
+#ans{font-size:24px; width:10ch}
+@media (prefers-reduced-motion: reduce){
+  .fig *, .eqbox > div{animation:none!important; stroke-dashoffset:0!important}
+  .balsvg .beam, .balsvg .pan, .card .poly{transition:none}
+}
+
+/* modos */
+.modes{display:flex; flex-wrap:wrap; gap:10px}
+.mode{flex:1 1 200px; max-width:300px; display:grid; gap:2px; text-align:left; padding:10px 16px; border:2px solid var(--line); border-radius:12px; background:var(--surface); cursor:pointer}
+.mode b{font-family:var(--display); font-weight:500; font-size:16px}
+.mode span{font-size:14px; color:var(--muted)}
+.mode:hover{border-color:var(--cobalt)}
+.mode[aria-checked="true"]{border-color:var(--cobalt); background:var(--cobalt-soft)}
+.linkbtn{background:none; border:none; padding:4px 2px; color:var(--muted); text-decoration:underline; cursor:pointer; font-size:14px}
+.linkbtn.warn{color:var(--bad); font-weight:700}
+.hintchip{font-size:14px; padding:3px 10px; border-radius:999px; background:var(--mark); color:var(--ink)}
+.hearts .inf{font-family:var(--mono); font-size:20px; margin-left:2px}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <!-- MAPA -->
+  <section id="map" class="wrap">
+    <header class="hero">
+      <div class="eyebrow">Geometria + álgebra · 8 fases</div>
+      <h1>Rota dos <span>Polígonos</span></h1>
+      <p>Cada fase é um polígono com um lado a mais que a anterior. Resolva os problemas, ganhe estrelas e libere a próxima figura, do triângulo ao decágono.</p>
+      <div class="stats">
+        <span class="chip" id="totStars">★ 0 / 24</span>
+        <span class="chip" id="totScore">0 pontos</span>
+        <label class="toggle" for="free"><input type="checkbox" id="free"> Liberar todas as fases</label>
+      </div>
+      <div class="modes" role="radiogroup" aria-label="Modo de jogo">
+        <button type="button" class="mode" role="radio" data-mode="facil"><b>Fácil</b><span>Vidas infinitas · 6 dicas no jogo todo</span></button>
+        <button type="button" class="mode" role="radio" data-mode="dificil"><b>Difícil</b><span>3 vidas por fase · 3 dicas no jogo todo</span></button>
+      </div>
+      <div class="stats"><span class="chip" id="hintsLeft">Dicas restantes: 6 de 6</span><button type="button" class="linkbtn" id="resetBtn">Recomeçar o jogo</button></div>
+      <svg id="route" viewBox="0 0 800 100" aria-hidden="true"></svg>
+    </header>
+    <div class="phases" id="phases"></div>
+    <div class="rules">
+      <div><b>Modos</b>Fácil: vidas infinitas e 6 dicas. Difícil: 3 vidas por fase e 3 dicas. As dicas valem para o jogo inteiro, não para cada fase.</div>
+      <div><b>Pontos</b>100 por acerto. Mais 50 se acertar de primeira sem pedir dica.</div>
+      <div><b>Estrelas</b>Sem erros: 3 estrelas. Até 2 erros: 2. Mais que isso: 1.</div>
+      <div><b>Respostas</b>Digite números como 12, −4 ou 3,5. No plano cartesiano, toque no ponto.</div>
+    </div>
+  </section>
+
+  <!-- JOGO -->
+  <section id="play" class="wrap" hidden>
+    <div class="hud">
+      <div class="hud-left">
+        <button class="back" id="backBtn" type="button">← Mapa</button>
+        <h2 id="phTitle">Fase</h2>
+      </div>
+      <div class="hud-right">
+        <span class="hintchip" id="hudHints"></span><span class="hearts" id="hearts" aria-label="vidas"></span>
+        <span class="pips" id="pips"></span>
+        <span class="score" id="score">0 pts</span>
+      </div>
+    </div>
+
+    <div class="play-grid" id="qa">
+      <div class="stage" id="stage"></div>
+      <div class="panel">
+        <div class="eyebrow" id="qnum">Questão 1 de 5</div>
+        <p class="prompt" id="prompt"></p>
+        <div class="answer" id="numRow">
+          <label for="ans" id="ansLabel">x =</label>
+          <input id="ans" type="text" inputmode="decimal" autocomplete="off" aria-label="Sua resposta">
+          <span class="unit" id="unit"></span>
+        </div>
+        <div class="balance" id="bal" hidden></div>
+        <div class="keypad" id="pad" aria-label="Teclado numérico"><button type="button" data-k="7" class="" aria-label="7">7</button><button type="button" data-k="8" class="" aria-label="8">8</button><button type="button" data-k="9" class="" aria-label="9">9</button><button type="button" data-k="back" class="fn" aria-label="apagar">⌫</button><button type="button" data-k="4" class="" aria-label="4">4</button><button type="button" data-k="5" class="" aria-label="5">5</button><button type="button" data-k="6" class="" aria-label="6">6</button><button type="button" data-k="-" class="fn" aria-label="trocar sinal">±</button><button type="button" data-k="1" class="" aria-label="1">1</button><button type="button" data-k="2" class="" aria-label="2">2</button><button type="button" data-k="3" class="" aria-label="3">3</button><button type="button" data-k="," class="fn" aria-label=",">,</button><button type="button" data-k="0" class="wide" aria-label="0">0</button><button type="button" data-k="/" class="fn" aria-label="/">/</button><button type="button" data-k="clear" class="fn" aria-label="limpar">C</button></div>
+        <div class="readout" id="clickRow" hidden>Ponto marcado: <b id="pickTxt">nenhum</b> <span class="unit">· toque no plano ou use as setas</span></div>
+        <div class="btns">
+          <button class="btn" id="check" type="button">Verificar</button>
+          <button class="btn ghost" id="hintBtn" type="button">Dica</button>
+          <button class="btn ghost" id="giveup" type="button" hidden>Ver resolução</button>
+          <button class="btn" id="next" type="button" hidden>Próxima →</button>
+        </div>
+        <div class="hint" id="hintBox" hidden></div>
+        <div class="fb" id="fb" hidden></div>
+        <div class="sol" id="sol" hidden><h4>Resolução</h4><ol id="solList"></ol></div>
+      </div>
+    </div>
+
+    <div id="result" hidden></div>
+  </section>
+</div>
+
+<script>
+/* ===== utilidades ===== */
+const $=s=>document.querySelector(s);
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const M='−';
+const fm=n=>{const r=Math.round(n*100)/100;return String(r).replace('.',',').replace('-',M)};
+const par=n=>n<0?`(${fm(n)})`:fm(n);
+function lin(a,b,v='x'){
+  if(a===0) return fm(b);
+  let s=a===1?v:a===-1?M+v:fm(a)+v;
+  if(b>0) s+=' + '+fm(b); else if(b<0) s+=' '+M+' '+fm(-b);
+  return s;
+}
+function subst(a,b,v){
+  let s=a===1?par(v):a===-1?M+par(v):fm(a)+'·'+par(v);
+  if(b>0) s+=' + '+fm(b); else if(b<0) s+=' '+M+' '+fm(-b);
+  return s;
+}
+function solveLin(A,B,V,v='x'){
+  const st=[`${lin(A,B,v)} = ${fm(V)}`];
+  if(B!==0) st.push(`${lin(A,0,v)} = ${fm(V)} ${B>0?M:'+'} ${fm(Math.abs(B))} = ${fm(V-B)}`);
+  if(A!==1) st.push(`${v} = ${fm(V-B)} ÷ ${par(A)} = ${fm((V-B)/A)}`);
+  return st;
+}
+function parseNum(s){
+  s=s.trim().replace(/\s/g,'').replace(/[−–]/g,'-').replace(',','.');
+  if(!s) return NaN;
+  if(/^-?\d+(\.\d+)?\/-?\d+(\.\d+)?$/.test(s)){const [a,b]=s.split('/').map(Number);return b?a/b:NaN}
+  return /^-?(\d+\.?\d*|\.\d+)$/.test(s)?Number(s):NaN;
+}
+
+/* ===== desenho ===== */
+const svg=(w,h,inner,extra='')=>`<svg viewBox="0 0 ${w} ${h}" class="fig" role="img" ${extra}>${inner}</svg>`;
+const r1=n=>Math.round(n*10)/10;
+function P(cx,cy,r,deg){const t=deg*Math.PI/180;return [r1(cx+r*Math.cos(t)),r1(cy-r*Math.sin(t))]}
+const L=(x1,y1,x2,y2,c='ln')=>`<line class="${c}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+const T=(x,y,t,c='',a='middle')=>`<text x="${x}" y="${y}" text-anchor="${a}" dominant-baseline="middle" class="${c}">${t}</text>`;
+const dot=(x,y)=>`<circle class="dot" cx="${x}" cy="${y}" r="4"/>`;
+function arc(cx,cy,r,a1,a2,c){const [x1,y1]=P(cx,cy,r,a1),[x2,y2]=P(cx,cy,r,a2);return `<path class="arc ${c}" d="M${x1} ${y1} A${r} ${r} 0 ${a2-a1>180?1:0} 0 ${x2} ${y2}"/>`}
+function fit(pts,W,H,pad){
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const mnx=Math.min(...xs),mxx=Math.max(...xs),mny=Math.min(...ys),mxy=Math.max(...ys);
+  const s=Math.min((W-2*pad)/((mxx-mnx)||1),(H-2*pad)/((mxy-mny)||1));
+  const ox=(W-s*(mxx-mnx))/2, oy=(H-s*(mxy-mny))/2;
+  return pts.map(([x,y])=>[r1(ox+(x-mnx)*s),r1(H-oy-(y-mny)*s)]);
+}
+const poly=(pts,c='shape')=>`<polygon class="${c}" points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+function sideLabel(p1,p2,g,text,c='',off=24){
+  const mx=(p1[0]+p2[0])/2,my=(p1[1]+p2[1])/2;let dx=mx-g[0],dy=my-g[1];const l=Math.hypot(dx,dy)||1;
+  return T(r1(mx+dx/l*off),r1(my+dy/l*off),text,c);
+}
+const centroid=pts=>[pts.reduce((s,p)=>s+p[0],0)/pts.length,pts.reduce((s,p)=>s+p[1],0)/pts.length];
+const rightMark=(x,y,sx=1,sy=-1,s=14)=>`<path class="thin" d="M${x+sx*s} ${y} L${x+sx*s} ${y+sy*s} L${x} ${y+sy*s}"/>`;
+function polyPts(n,cx,cy,r){return Array.from({length:n},(_,i)=>{const t=-Math.PI/2+i*2*Math.PI/n+(n%2===0?Math.PI/n:0);return [r1(cx+r*Math.cos(t)),r1(cy+r*Math.sin(t))]})}
+
+function triFig(angles,labels){
+  const [A,B,C]=angles.map(d=>d*Math.PI/180);
+  const b=Math.sin(B)/Math.sin(C);
+  const pts=fit([[0,0],[1,0],[b*Math.cos(A),b*Math.sin(A)]],400,270,34);
+  let s=poly(pts);
+  const ang=(V,U)=>Math.atan2(-(U[1]-V[1]),U[0]-V[0])*180/Math.PI;
+  pts.forEach((V,i)=>{
+    const U=pts[(i+1)%3],W=pts[(i+2)%3];let a1=ang(V,U),a2=ang(V,W);let d=((a2-a1)%360+360)%360;if(d>180){a1=a2;d=360-d}
+    s+=arc(V[0],V[1],26,a1,a1+d,'k'+(i+1));
+    const [lx,ly]=P(V[0],V[1],62,a1+d/2);s+=T(lx,ly,labels[i],'c'+(i+1));
+  });
+  return svg(400,270,s);
+}
+function rectFig(w,h,lb,lr,inside=''){
+  const s=Math.min(270/w,170/h),W=r1(w*s),H=r1(h*s),x0=r1((400-W)/2-24),y0=r1((250-H)/2-10);
+  let o=`<rect class="shape" x="${x0}" y="${y0}" width="${W}" height="${H}"/>`+rightMark(x0,y0+H);
+  o+=T(r1(x0+W/2),r1(y0+H+24),lb,'c1')+T(r1(x0+W+12),r1(y0+H/2),lr,'c2','start');
+  if(inside) o+=T(r1(x0+W/2),r1(y0+H/2),inside,'big');
+  return svg(400,250,o);
+}
+function rightTri(a,b,la,lb,lc){
+  const pts=fit([[0,0],[a,0],[0,b]],400,270,48),g=centroid(pts);
+  let s=poly(pts)+rightMark(pts[0][0],pts[0][1]);
+  s+=sideLabel(pts[0],pts[1],g,la,'c1')+sideLabel(pts[0],pts[2],g,lb,'c2',30)+sideLabel(pts[1],pts[2],g,lc,'c3',26);
+  return svg(400,270,s);
+}
+
+/* plano cartesiano */
+const U=28,O=200,gx=x=>O+x*U,gy=y=>O-y*U;
+function grid(inner='',board=false){
+  let s=`<defs><clipPath id="gc"><rect x="${gx(-6.5)}" y="${gy(6.5)}" width="${13*U}" height="${13*U}"/></clipPath></defs>`;
+  for(let i=-6;i<=6;i++) s+=L(gx(i),gy(-6.5),gx(i),gy(6.5),'gl')+L(gx(-6.5),gy(i),gx(6.5),gy(i),'gl');
+  s+=L(gx(-6.5),gy(0),gx(6.6),gy(0),'ax')+L(gx(0),gy(-6.5),gx(0),gy(6.6),'ax');
+  s+=T(gx(6.75),gy(0),'x','small')+T(gx(0),gy(6.85),'y','small');
+  for(const i of [-6,-4,-2,2,4,6]) s+=T(gx(i),gy(0)+13,fm(i),'small')+T(gx(0)-8,gy(i),fm(i),'small','end');
+  return svg(400,400,s+`<g clip-path="url(#gc)">${inner}</g><g id="ghostLayer"></g><g id="pickLayer"></g>`,board?'id="board" tabindex="0" aria-label="Plano cartesiano: toque para marcar um ponto"':'');
+}
+const gLine=(m,b,c)=>L(gx(-7),r1(gy(-7*m+b)),gx(7),r1(gy(7*m+b)),'gline '+c);
+const gPt=(x,y,lab)=>`<circle class="pt" cx="${gx(x)}" cy="${gy(y)}" r="5.5"/>`+(lab?T(gx(x)+11,gy(y)-12,lab,'','start'):'');
+const eqBox=lines=>`<div class="eqbox">${lines.map(l=>`<div>${l}</div>`).join('')}</div>`;
+
+/* ===== geradores de questões ===== */
+// Fase 1 · Ângulos
+function qSupl(){
+  let x,a,b,c,d,A1,A2;
+  do{x=R(8,30);a=R(2,4);b=pick([0,5,10,15,20,-5,-10]);A1=a*x+b;A2=180-A1;c=R(1,3);d=A2-c*x}while(A1<40||A2<40||Math.abs(d)>70||(a===c&&b===d));
+  const cx=200,cy=178,[rx,ry]=P(cx,cy,165,A1);
+  let s=L(18,cy,382,cy)+L(cx,cy,rx,ry)+arc(cx,cy,40,0,A1,'k1')+arc(cx,cy,56,A1,180,'k2');
+  s+=T(...P(cx,cy,104,A1/2),lin(a,b)+'°','c1')+T(...P(cx,cy,104,(A1+180)/2),lin(c,d)+'°','c2')+dot(cx,cy);
+  return {type:'num',answer:x,fig:svg(400,200,s),
+    bal:{l:v=>(a+c)*v+b+d,lt:`${lin(a,b)} + ${lin(c,d)}`,r:180},prompt:'Os dois ângulos estão apoiados na mesma reta. Quanto vale <var>x</var>?',
+    hint:'Ângulos que juntos formam uma reta são suplementares: somam 180°.',
+    sol:[`${lin(a,b)} + ${lin(c,d)} = 180`,...solveLin(a+c,b+d,180)]};
+}
+function qComp(){
+  let x,a,b,c,d,A1,A2;
+  do{x=R(4,20);a=R(2,4);b=pick([0,5,10,-5,-10]);A1=a*x+b;A2=90-A1;c=R(1,2);d=A2-c*x}while(A1<25||A2<25||(a===c&&b===d));
+  const vx=70,vy=225;
+  let s=L(vx,vy,...P(vx,vy,310,0))+L(vx,vy,...P(vx,vy,200,90))+L(vx,vy,...P(vx,vy,240,A1))+rightMark(vx,vy);
+  s+=arc(vx,vy,48,0,A1,'k1')+arc(vx,vy,64,A1,90,'k2');
+  s+=T(...P(vx,vy,128,A1/2),lin(a,b)+'°','c1')+T(...P(vx,vy,118,(A1+90)/2),lin(c,d)+'°','c2','start');
+  return {type:'num',answer:x,fig:svg(400,250,s),
+    bal:{l:v=>(a+c)*v+b+d,lt:`${lin(a,b)} + ${lin(c,d)}`,r:90},prompt:'O ângulo marcado com o quadradinho é reto e foi dividido em dois. Quanto vale <var>x</var>?',
+    hint:'Um ângulo reto mede 90°. As duas partes são complementares.',
+    sol:[`${lin(a,b)} + ${lin(c,d)} = 90`,...solveLin(a+c,b+d,90)]};
+}
+function qVert(){
+  let x,a,b,c,d,A;
+  do{x=R(5,25);c=R(1,3);a=c+R(1,3);b=pick([-20,-10,-5,0,5,10]);A=a*x+b;d=A-c*x}while(A<35||A>145);
+  const cx=200,cy=130,al=R(5,25);
+  let s=L(...P(cx,cy,200,al),...P(cx,cy,200,al+180))+L(...P(cx,cy,200,al+A),...P(cx,cy,200,al+A+180));
+  s+=arc(cx,cy,36,al,al+A,'k1')+arc(cx,cy,36,al+180,al+180+A,'k2')+dot(cx,cy);
+  s+=T(...P(cx,cy,80,al+A/2),lin(a,b)+'°','c1')+T(...P(cx,cy,80,al+180+A/2),lin(c,d)+'°','c2');
+  return {type:'num',answer:x,fig:svg(400,260,s),
+    bal:{l:v=>a*v+b,lt:lin(a,b),r:v=>c*v+d,rt:lin(c,d)},prompt:'Duas retas se cruzam. Os ângulos marcados são opostos pelo vértice. Quanto vale <var>x</var>?',
+    hint:'Ângulos opostos pelo vértice têm a mesma medida. Iguale as duas expressões.',
+    sol:[`${lin(a,b)} = ${lin(c,d)}`,`${lin(a,0)} ${M} ${lin(c,0)} = ${fm(d)} ${b>=0?M:'+'} ${fm(Math.abs(b))}`,...solveLin(a-c,0,d-b)]};
+}
+function triData(){
+  let x,a1,a2,a3,b1,b2,b3,A,B,C;
+  do{x=R(10,30);a1=R(1,3);a2=R(1,3);b1=pick([0,5,10,-5]);b2=pick([0,10,20,-10]);A=a1*x+b1;B=a2*x+b2;C=180-A-B;a3=R(1,2);b3=C-a3*x}while(A<30||B<30||C<30||Math.abs(b3)>80);
+  const e=[lin(a1,b1),lin(a2,b2),lin(a3,b3)];
+  return {x,A,B,C,e,bal:{l:v=>(a1+a2+a3)*v+b1+b2+b3,lt:e.join(' + '),r:180},fig:triFig([A,B,C],e.map(t=>t+'°')),steps:[`${e[0]} + ${e[1]} + ${e[2]} = 180`,...solveLin(a1+a2+a3,b1+b2+b3,180)]};
+}
+function qTri(){
+  const t=triData();
+  return {type:'num',answer:t.x,fig:t.fig,bal:t.bal,prompt:'Os três ângulos internos do triângulo estão escritos em função de <var>x</var>. Quanto vale <var>x</var>?',
+    hint:'A soma dos ângulos internos de qualquer triângulo é 180°.',sol:t.steps};
+}
+function qTriMax(){
+  const t=triData(),mx=Math.max(t.A,t.B,t.C);
+  return {type:'num',answer:mx,label:'maior =',unit:'°',fig:t.fig,prompt:'Qual é a medida do <b>maior</b> ângulo deste triângulo?',
+    hint:'Descubra x usando a soma 180° e depois substitua nas três expressões.',
+    sol:[...t.steps,`Ângulos: ${t.A}°, ${t.B}° e ${t.C}°`,`Maior ângulo: ${mx}°`]};
+}
+
+// Fase 2 · Perímetro e área
+function qPerim(){
+  let x,p,q,r,h;do{x=R(2,9);p=R(1,6);q=R(2,3);r=pick([0,-1,1,2,-2]);h=q*x+r}while(h<=0);
+  const w=x+p,Pm=2*(w+h);
+  return {type:'num',answer:x,fig:rectFig(w,h,lin(1,p),lin(q,r),`P = ${Pm}`),
+    bal:{l:v=>2*((1+q)*v+p+r),lt:`2·(${lin(1,p)} + ${lin(q,r)})`,r:Pm},prompt:`O perímetro deste retângulo é <b>${Pm}</b>. Quanto vale <var>x</var>?`,
+    hint:'Perímetro é a soma dos 4 lados: 2 · (base + altura).',
+    sol:[`2 · (${lin(1,p)} + ${lin(q,r)}) = ${Pm}`,`${lin(1,p)} + ${lin(q,r)} = ${Pm/2}`,...solveLin(1+q,p+r,Pm/2)]};
+}
+function qSqArea(){
+  const x=R(1,8),p=R(1,6),s=x+p,A=s*s;
+  return {type:'num',answer:x,fig:rectFig(1,1,lin(1,p),lin(1,p),`A = ${A}`),
+    bal:{l:v=>(v+p)**2,lt:`(${lin(1,p)})²`,r:A},prompt:`A área deste quadrado é <b>${A}</b>. Quanto vale <var>x</var>?`,
+    hint:'A área do quadrado é lado². Tire a raiz quadrada da área para achar o lado.',
+    sol:[`(${lin(1,p)})² = ${A}`,`${lin(1,p)} = √${A} = ${s}`,`x = ${s} ${M} ${p} = ${x}`]};
+}
+function qRectArea(){
+  let x,a,b,c,d,s1,s2;do{x=R(2,6);a=R(1,3);b=R(-2,5);c=R(1,3);d=R(-3,4);s1=a*x+b;s2=c*x+d}while(s1<2||s2<2||(a===c&&b===d));
+  return {type:'num',answer:s1*s2,label:'A =',fig:rectFig(s1,s2,lin(a,b),lin(c,d),'?'),
+    prompt:`Se <var>x</var> = ${x}, qual é a área deste retângulo?`,
+    hint:'Troque x pelo valor dado em cada lado e depois multiplique base × altura.',
+    sol:[`base = ${subst(a,b,x)} = ${s1}`,`altura = ${subst(c,d,x)} = ${s2}`,`área = ${s1} · ${s2} = ${s1*s2}`]};
+}
+function qTriArea(){
+  const B=pick([4,6,8,10,12]),x=R(2,9),p=R(1,5),h=x+p,A=B*h/2;
+  const pts=fit([[0,0],[B,0],[B*.35,h],[B*.35,0]],400,250,44);
+  let s=poly(pts.slice(0,3))+L(...pts[2],...pts[3],'dash')+rightMark(pts[3][0],pts[3][1],1,-1,12);
+  s+=T(r1((pts[0][0]+pts[1][0])/2),pts[0][1]+22,String(B),'c1')+T(pts[2][0]+10,r1((pts[2][1]+pts[3][1])/2),lin(1,p),'c2','start');
+  return {type:'num',answer:x,fig:svg(400,250,s),
+    bal:{l:v=>B*(v+p)/2,lt:`${B}·(${lin(1,p)}) ÷ 2`,r:A},prompt:`A área deste triângulo é <b>${fm(A)}</b>. A base mede ${B} e a altura (tracejada) mede ${lin(1,p)}. Quanto vale <var>x</var>?`,
+    hint:'Área do triângulo = base × altura ÷ 2.',
+    sol:[`${B} · (${lin(1,p)}) ÷ 2 = ${fm(A)}`,`${B/2} · (${lin(1,p)}) = ${fm(A)}`,`${lin(1,p)} = ${fm(A)} ÷ ${B/2} = ${h}`,`x = ${h} ${M} ${p} = ${x}`]};
+}
+
+// Fase 3 · Pitágoras
+const TRIPLES=[[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[12,16,20],[7,24,25],[20,21,29]];
+function qHyp(){
+  const [a,b,c]=pick(TRIPLES);
+  return {type:'num',answer:c,label:'h =',fig:rightTri(a,b,String(a),String(b),'?'),
+    bal:{l:v=>v*v,lt:'h²',r:a*a+b*b,rt:`${a}² + ${b}²`},prompt:'Este triângulo é retângulo. Quanto mede a hipotenusa?',
+    hint:'Teorema de Pitágoras: hipotenusa² = cateto² + cateto².',
+    sol:[`h² = ${a}² + ${b}²`,`h² = ${a*a} + ${b*b} = ${c*c}`,`h = √${c*c} = ${c}`]};
+}
+function qLeg(){
+  const [a,b,c]=pick(TRIPLES);
+  return {type:'num',answer:b,label:'c =',fig:rightTri(a,b,String(a),'?',String(c)),
+    bal:{l:v=>a*a+v*v,lt:`${a}² + c²`,r:c*c,rt:`${c}²`},prompt:'Neste triângulo retângulo, quanto mede o cateto que falta?',
+    hint:'cateto² = hipotenusa² − outro cateto².',
+    sol:[`${c}² = ${a}² + c²`,`c² = ${c*c} ${M} ${a*a} = ${b*b}`,`c = √${b*b} = ${b}`]};
+}
+function qPyAlg(){
+  const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17]]),k=R(2,6);
+  return {type:'num',answer:k,fig:rightTri(a,b,`${a}x`,`${b}x`,String(c*k)),
+    bal:{l:v=>(a*a+b*b)*v*v,lt:`(${a}x)² + (${b}x)²`,r:(c*k)**2,rt:`${c*k}²`},prompt:'Os catetos estão escritos em função de <var>x</var>. Quanto vale <var>x</var>?',
+    hint:'Monte (ax)² + (bx)² = hipotenusa². Lembre que (3x)² = 9x².',
+    sol:[`(${a}x)² + (${b}x)² = ${c*k}²`,`${a*a}x² + ${b*b}x² = ${c*c*k*k}`,`${c*c}x² = ${c*c*k*k}`,`x² = ${k*k}`,`x = ${k}`]};
+}
+function qLadder(){
+  const [a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[9,12,15]]);
+  const pts=fit([[0,0],[a,0],[0,b]],400,270,48),[W0,F,Tp]=pts,g=centroid(pts);
+  let s=`<rect class="wall" x="${W0[0]-18}" y="${Tp[1]-14}" width="18" height="${r1(W0[1]-Tp[1]+14)}"/>`;
+  s+=L(W0[0]-30,W0[1],F[0]+40,W0[1])+L(...Tp,...W0,'dash')+rightMark(W0[0],W0[1])+L(...F,...Tp,'ladder');
+  s+=T(r1((W0[0]+F[0])/2),W0[1]+22,`${a} m`,'c1')+sideLabel(F,Tp,g,`${c} m`,'c2',26)+T(W0[0]-28,r1((W0[1]+Tp[1])/2),'?','c3','end');
+  return {type:'num',answer:b,label:'altura =',unit:'m',fig:svg(400,270,s),
+    bal:{l:v=>a*a+v*v,lt:`${a}² + h²`,r:c*c,rt:`${c}²`},prompt:`Uma escada de ${c} m está encostada num muro, com o pé a ${a} m da base do muro. A que altura ela toca o muro?`,
+    hint:'Muro e chão formam um ângulo reto. A escada é a hipotenusa.',
+    sol:[`${c}² = ${a}² + h²`,`h² = ${c*c} ${M} ${a*a} = ${b*b}`,`h = ${b} m`]};
+}
+function qDiag(){
+  const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17]]),k=pick([2,3,4,5]),w=b*k,h=a*k;
+  const s0=Math.min(270/w,170/h),W=r1(w*s0),H=r1(h*s0),x0=r1((400-W)/2-24),y0=r1((250-H)/2-10);
+  let s=`<rect class="shape" x="${x0}" y="${y0}" width="${W}" height="${H}"/>`+L(x0,y0+H,x0+W,y0,'dash')+rightMark(x0+W,y0+H,-1,-1);
+  s+=T(r1(x0+W/2),y0+H+22,`${w} cm`,'c1')+T(x0+W+12,r1(y0+H/2),`${h} cm`,'c2','start')+T(r1(x0+W/2-14),r1(y0+H/2-14),'?','c3 big');
+  return {type:'num',answer:c*k,label:'d =',unit:'cm',fig:svg(400,250,s),
+    bal:{l:v=>v*v,lt:'d²',r:w*w+h*h,rt:`${w}² + ${h}²`},prompt:`Uma tela retangular mede ${w} cm por ${h} cm. Quanto mede a diagonal?`,
+    hint:'A diagonal divide o retângulo em dois triângulos retângulos.',
+    sol:[`d² = ${w}² + ${h}²`,`d² = ${w*w} + ${h*h} = ${c*c*k*k}`,`d = √${c*c*k*k} = ${c*k} cm`]};
+}
+
+// Fase 4 · Plano cartesiano (clique)
+const nz=(a,b)=>{let v;do{v=R(a,b)}while(v===0);return v};
+const pt=(x,y)=>`(${fm(x)}, ${fm(y)})`;
+function qPlot(){
+  const p=nz(-5,5),q=nz(-5,5);
+  return {type:'click',answer:[p,q],fig:grid('',true),prompt:`Marque o ponto <b>P${pt(p,q)}</b> no plano.`,
+    hint:'O primeiro número anda na horizontal (eixo x). O segundo anda na vertical (eixo y).',
+    sol:['Comece na origem (0, 0).',`Ande ${Math.abs(p)} para a ${p>0?'direita':'esquerda'}.`,`Ande ${Math.abs(q)} para ${q>0?'cima':'baixo'}.`,`Ponto: ${pt(p,q)}`]};
+}
+function qRect4(){
+  const x1=R(-5,1),x2=x1+R(2,5),y1=R(-5,1),y2=y1+R(2,4);
+  const inner=L(gx(x1),gy(y1),gx(x2),gy(y1),'ln')+L(gx(x2),gy(y1),gx(x2),gy(y2),'ln')+gPt(x1,y1,'A')+gPt(x2,y1,'B')+gPt(x2,y2,'C');
+  return {type:'click',answer:[x1,y2],fig:grid(inner,true),prompt:'A, B e C são vértices do retângulo ABCD. Marque o vértice <b>D</b>.',
+    hint:'D fica alinhado verticalmente com A e horizontalmente com C.',
+    sol:[`A${pt(x1,y1)}, B${pt(x2,y1)}, C${pt(x2,y2)}`,`D tem o x de A: ${fm(x1)}`,`D tem o y de C: ${fm(y2)}`,`D = ${pt(x1,y2)}`]};
+}
+function qMid(){
+  let x1,y1,x2,y2;do{x1=R(-6,2);y1=R(-6,6);x2=x1+2*R(1,4);y2=y1+2*R(-3,3)}while(x2>6||Math.abs(y2)>6||y2===y1&&Math.random()<.7);
+  const mx=(x1+x2)/2,my=(y1+y2)/2;
+  return {type:'click',answer:[mx,my],fig:grid(L(gx(x1),gy(y1),gx(x2),gy(y2),'ln')+gPt(x1,y1,'A')+gPt(x2,y2,'B'),true),
+    prompt:'Marque o <b>ponto médio</b> do segmento AB.',hint:'O ponto médio tem a média dos x e a média dos y.',
+    sol:[`M = ((${fm(x1)} + ${par(x2)}) ÷ 2, (${fm(y1)} + ${par(y2)}) ÷ 2)`,`M = (${fm(x1+x2)} ÷ 2, ${fm(y1+y2)} ÷ 2)`,`M = ${pt(mx,my)}`]};
+}
+function qReflect(){
+  const p=nz(-5,5),q=nz(-5,5),k=pick(['y','x','o']);
+  const ans=k==='y'?[-p,q]:k==='x'?[p,-q]:[-p,-q];
+  const nome=k==='y'?'ao eixo <b>y</b>':k==='x'?'ao eixo <b>x</b>':'à <b>origem</b>';
+  const regra=k==='y'?'Reflexão no eixo y: troca o sinal de x.':k==='x'?'Reflexão no eixo x: troca o sinal de y.':'Reflexão na origem: troca o sinal de x e de y.';
+  return {type:'click',answer:ans,fig:grid(gPt(p,q,'P'),true),prompt:`Marque o ponto simétrico de P em relação ${nome}.`,hint:regra,
+    sol:[`P = ${pt(p,q)}`,regra,`P′ = ${pt(...ans)}`]};
+}
+function qTranslate(){
+  let p,q,dx,dy;do{p=R(-5,5);q=R(-5,5);dx=nz(-5,5);dy=nz(-5,5)}while(Math.abs(p+dx)>6||Math.abs(q+dy)>6);
+  return {type:'click',answer:[p+dx,q+dy],fig:grid(gPt(p,q,'P'),true),
+    prompt:`P andou ${Math.abs(dx)} ${Math.abs(dx)>1?'unidades':'unidade'} para a ${dx>0?'direita':'esquerda'} e ${Math.abs(dy)} para ${dy>0?'cima':'baixo'}. Marque a nova posição <b>P′</b>.`,
+    hint:'Direita/esquerda mexe no x. Cima/baixo mexe no y.',
+    sol:[`P = ${pt(p,q)}`,`x: ${fm(p)} ${dx>0?'+':M} ${Math.abs(dx)} = ${fm(p+dx)}`,`y: ${fm(q)} ${dy>0?'+':M} ${Math.abs(dy)} = ${fm(q+dy)}`,`P′ = ${pt(p+dx,q+dy)}`]};
+}
+
+// Fase 5 · Retas e funções
+const MS=[-3,-2,-1,1,2,3];
+function qSlope(){
+  let m,b,x1,x2,y1,y2;do{m=pick(MS);b=R(-3,3);x1=R(-4,2);x2=x1+R(1,3);y1=m*x1+b;y2=m*x2+b}while(Math.abs(y1)>5||Math.abs(y2)>5||x2>5);
+  return {type:'num',answer:m,label:'m =',fig:grid(gLine(m,b,'l1')+gPt(x1,y1,'A')+gPt(x2,y2,'B')),
+    prompt:'Qual é a inclinação (coeficiente angular <var>m</var>) da reta que passa por A e B?',
+    hint:'m = (variação de y) ÷ (variação de x). Quanto a reta sobe ou desce para cada passo à direita?',
+    sol:[`A${pt(x1,y1)} e B${pt(x2,y2)}`,`m = (${fm(y2)} ${M} ${par(y1)}) ÷ (${fm(x2)} ${M} ${par(x1)})`,`m = ${fm(y2-y1)} ÷ ${fm(x2-x1)} = ${fm(m)}`]};
+}
+function qB(){
+  const m=pick([-2,-1,1,2]),b=nz(-5,5);
+  return {type:'num',answer:b,label:'b =',fig:grid(gLine(m,b,'l1')),
+    prompt:'A reta do gráfico tem equação y = mx + <var>b</var>. Qual é o valor de <var>b</var>?',
+    hint:'b é onde a reta corta o eixo y, ou seja, o valor de y quando x = 0.',
+    sol:['Quando x = 0, temos y = b.',`A reta corta o eixo y em ${pt(0,b)}.`,`b = ${fm(b)}`]};
+}
+function qLaw(){
+  let m,b,x2,y2;do{m=pick(MS);b=R(-4,4);x2=R(1,3);y2=m*x2+b}while(Math.abs(y2)>6);
+  const k=pick([8,10,12,-8,-10]),y=m*k+b;
+  return {type:'num',answer:y,label:'y =',fig:grid(gLine(m,b,'l1')+gPt(0,b,'A')+gPt(x2,y2,'B')),
+    prompt:`Descubra a lei y = mx + b da reta pelo gráfico. Depois calcule <var>y</var> quando x = ${fm(k)}.`,
+    hint:'Leia b no eixo y (ponto A). Use A e B para achar m. Então substitua x.',
+    sol:[`b = ${fm(b)} (ponto A)`,`m = (${fm(y2)} ${M} ${par(b)}) ÷ ${x2} = ${fm(m)}`,`y = ${lin(m,b)}`,`y = ${subst(m,b,k)} = ${fm(y)}`]};
+}
+function qRootClick(){
+  const m=pick(MS),r=nz(-5,5),b=-m*r;
+  return {type:'click',answer:[r,0],fig:grid('',true),
+    prompt:`A reta y = ${lin(m,b)} não está desenhada. Marque o ponto onde ela corta o <b>eixo x</b>.`,
+    hint:'No eixo x, y vale 0. Resolva a equação com y = 0.',
+    sol:['No eixo x, y = 0.',...solveLin(m,b,0),`Ponto: ${pt(r,0)}`]};
+}
+function qEvalClick(){
+  let m,b,k,y;do{m=pick([-2,-1,1,2,3]);b=R(-4,4);k=nz(-4,4);y=m*k+b}while(Math.abs(y)>6);
+  return {type:'click',answer:[k,y],fig:grid('',true),
+    prompt:`Marque o ponto da reta y = ${lin(m,b)} que tem x = ${fm(k)}.`,
+    hint:'Substitua x na equação para descobrir o y do ponto.',
+    sol:[`y = ${subst(m,b,k)}`,`y = ${fm(y)}`,`Ponto: ${pt(k,y)}`]};
+}
+
+// Fase 6 · Sistemas
+function sysData(range,bmax){
+  let p,q,m1,m2,b1,b2;do{p=R(-range,range);q=R(-range,range);m1=pick([-3,-2,-1,0,1,2,3]);m2=pick([-3,-2,-1,1,2,3]);b1=q-m1*p;b2=q-m2*p}while(m1===m2||Math.abs(b1)>bmax||Math.abs(b2)>bmax);
+  return {p,q,m1,m2,b1,b2,steps:[`${lin(m1,b1)} = ${lin(m2,b2)}`,...solveLin(m1-m2,0,b2-b1),`y = ${subst(m1,b1,p)} = ${fm(q)}`]};
+}
+function qSysClick(){
+  const d=sysData(4,6);
+  return {type:'click',answer:[d.p,d.q],fig:grid(gLine(d.m1,d.b1,'l1')+gLine(d.m2,d.b2,'l2'),true),
+    prompt:`Marque a solução do sistema:<br><span class="eq c1">y = ${lin(d.m1,d.b1)}</span><span class="eq c2">y = ${lin(d.m2,d.b2)}</span>`,
+    hint:'A solução é o ponto que pertence às duas retas: onde elas se cruzam.',
+    sol:[...d.steps,`Solução: ${pt(d.p,d.q)}`]};
+}
+function qSysSum(){
+  const x=R(5,25),y=R(1,x-1),S=x+y,D=x-y,askX=Math.random()<.5;
+  return {type:'num',answer:askX?x:y,label:askX?'x =':'y =',fig:eqBox([`x + y = ${S}`,`x ${M} y = ${D}`]),
+    bal:askX?{l:v=>2*v,lt:'2x',r:S+D,rt:`${S} + ${D}`}:{l:v=>2*v,lt:'2y',r:S-D,rt:`${S} − ${D}`},prompt:`Resolva o sistema. Quanto vale <var>${askX?'x':'y'}</var>?`,
+    hint:'Some as duas equações: o y desaparece.',
+    sol:[`Somando: 2x = ${S} + ${D} = ${S+D}`,`x = ${x}`,`y = ${S} ${M} ${x} = ${y}`]};
+}
+function qSysSubst(){
+  const d=sysData(8,20),askX=Math.random()<.5;
+  return {type:'num',answer:askX?d.p:d.q,label:askX?'x =':'y =',fig:eqBox([`<span class="c1">y = ${lin(d.m1,d.b1)}</span>`,`<span class="c2">y = ${lin(d.m2,d.b2)}</span>`]),
+    bal:askX?{l:v=>d.m1*v+d.b1,lt:lin(d.m1,d.b1),r:v=>d.m2*v+d.b2,rt:lin(d.m2,d.b2)}:null,prompt:`As duas retas se cruzam em um ponto. Qual é o valor de <var>${askX?'x':'y'}</var> nesse ponto?`,
+    hint:'Os dois lados valem y, então iguale as expressões e resolva para x.',sol:d.steps};
+}
+function qCars(){
+  const c=R(3,15),mo=R(3,15),Tt=c+mo,W=4*c+2*mo;
+  const car=(x,y)=>`<rect class="tire" x="${x-6}" y="${y+8}" width="10" height="18" rx="3"/><rect class="tire" x="${x+56}" y="${y+8}" width="10" height="18" rx="3"/><rect class="tire" x="${x-6}" y="${y+62}" width="10" height="18" rx="3"/><rect class="tire" x="${x+56}" y="${y+62}" width="10" height="18" rx="3"/><rect class="body" x="${x}" y="${y}" width="60" height="88" rx="14"/>`;
+  const moto=(x,y)=>`<rect class="tire" x="${x+6}" y="${y-6}" width="12" height="22" rx="5"/><rect class="tire" x="${x+6}" y="${y+72}" width="12" height="22" rx="5"/><rect class="body" x="${x}" y="${y+12}" width="24" height="64" rx="10"/>`;
+  let s=car(70,40)+moto(268,38)+T(100,165,'carro · 4 rodas','c1')+T(280,165,'moto · 2 rodas','c2');
+  s+=T(200,210,`${Tt} veículos · ${W} rodas`,'big');
+  return {type:'num',answer:mo,label:'motos =',fig:svg(400,240,s),
+    bal:{l:v=>4*(Tt-v)+2*v,lt:`4·(${Tt} − m) + 2m`,r:W,rt:`${W} rodas`},prompt:`Num estacionamento há carros e motos: ${Tt} veículos e ${W} rodas no total. Quantas <b>motos</b> há?`,
+    hint:'Chame carros de c e motos de m: c + m = total de veículos e 4c + 2m = total de rodas.',
+    sol:[`c + m = ${Tt}  →  c = ${Tt} ${M} m`,`4c + 2m = ${W}`,`4(${Tt} ${M} m) + 2m = ${W}`,`${4*Tt} ${M} 2m = ${W}`,`2m = ${4*Tt-W}  →  m = ${mo}`]};
+}
+function qTriple(){
+  const a=R(3,15),k=R(2,4),S=a*(k+1);
+  const u=Math.min(48,300/(k+1)),x0=70;
+  let s=T(x0-12,62,'menor','','end')+`<rect class="bar" x="${x0}" y="44" width="${u}" height="36" rx="4"/>`+T(x0+u/2,62,'?','c1');
+  s+=T(x0-12,122,'maior','','end');
+  for(let i=0;i<k;i++) s+=`<rect class="bar2" x="${x0+i*u}" y="104" width="${u}" height="36" rx="4"/>`+T(x0+i*u+u/2,122,'?','c2');
+  const end=x0+Math.max(u,k*u);
+  s+=`<path class="thin" d="M${end+10} 44 q10 0 10 10 v28 q0 8 8 10 q-8 2 -8 10 v28 q0 10 -10 10"/>`+T(end+34,92,`soma ${S}`,'','start');
+  return {type:'num',answer:a,label:'menor =',fig:svg(400,180,s),
+    bal:{l:v=>v+k*v,lt:`x + ${k}x`,r:S},prompt:`A soma de dois números é ${S}. O maior é ${k===2?'o dobro':k===3?'o triplo':'o quádruplo'} do menor. Qual é o <b>menor</b> número?`,
+    hint:`Chame o menor de x. O maior vale ${k}x. Some os dois.`,
+    sol:[`x + ${k}x = ${S}`,`${k+1}x = ${S}`,`x = ${S} ÷ ${k+1} = ${a}`]};
+}
+
+// Fase 7 · Círculos
+function circFig(mode,label,inside=''){
+  const cx=200,cy=128,r=100;
+  let s=`<circle class="shape" cx="${cx}" cy="${cy}" r="${r}"/>`+dot(cx,cy);
+  if(mode==='r') s+=L(cx,cy,cx+r,cy)+T(cx+r/2,cy-16,label,'c1');
+  else s+=L(cx-r,cy,cx+r,cy)+T(cx,cy-16,label,'c1');
+  if(inside) s+=T(cx,cy+42,inside,'c2');
+  return svg(400,256,s);
+}
+function qCircArea(){
+  const r=R(2,12);
+  return {type:'num',answer:r*r,label:'k =',fig:circFig('r',String(r)),
+    prompt:'A área deste círculo é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Área do círculo = π · r².',
+    sol:['A = π · r²',`A = π · ${r}² = ${r*r}π`,`k = ${r*r}`]};
+}
+function qCircLen(){
+  const d=R(3,24);
+  return {type:'num',answer:d,label:'k =',fig:circFig('d',String(d)),
+    prompt:'O comprimento desta circunferência é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Comprimento = π · diâmetro (ou 2 · π · raio).',
+    sol:['C = π · d',`C = π · ${d} = ${d}π`,`k = ${d}`]};
+}
+function qCircAlg(){
+  const x=R(2,10),p=R(1,9),d=2*x+p;
+  return {type:'num',answer:x,fig:circFig('d',lin(2,p),`C = ${d}π`),
+    bal:{l:v=>2*v+p,lt:lin(2,p),r:d},prompt:`O diâmetro mede ${lin(2,p)} e o comprimento da circunferência é ${d}π. Quanto vale <var>x</var>?`,
+    hint:'C = π · d. Se C = kπ, então o diâmetro vale k.',
+    sol:[`π · (${lin(2,p)}) = ${d}π`,...solveLin(2,p,d)]};
+}
+function qCircR(){
+  const r=R(2,12);
+  return {type:'num',answer:r,label:'r =',fig:circFig('r','?',`A = ${r*r}π`),
+    bal:{l:v=>v*v,lt:'r²',r:r*r},prompt:`A área deste círculo é ${r*r}π. Quanto mede o raio?`,hint:'π · r² = área. Divida por π e tire a raiz.',
+    sol:[`π · r² = ${r*r}π`,`r² = ${r*r}`,`r = ${r}`]};
+}
+function qSector(){
+  const [th,rs,fr]=pick([[90,[2,4,6,8,10,12],'1/4'],[60,[6,12],'1/6'],[120,[3,6,9],'1/3'],[180,[2,4,6,8,10],'1/2'],[45,[4,8,12],'1/8'],[270,[2,4,6,8],'3/4']]);
+  const r=pick(rs),k=th/360*r*r,cx=200,cy=128,R0=100,[x1,y1]=P(cx,cy,R0,0),[x2,y2]=P(cx,cy,R0,th);
+  let s=`<circle class="faint" cx="${cx}" cy="${cy}" r="${R0}"/><path class="shape" d="M${cx} ${cy} L${x1} ${y1} A${R0} ${R0} 0 ${th>180?1:0} 0 ${x2} ${y2} Z"/>`;
+  s+=arc(cx,cy,24,0,th,'k2')+T(...P(cx,cy,44,th/2),th+'°','c2')+T(cx+R0/2,cy+16,String(r),'c1')+dot(cx,cy);
+  return {type:'num',answer:k,label:'k =',fig:svg(400,256,s),
+    prompt:`O setor tem raio ${r} e ângulo de ${th}°. Sua área é <var>k</var>·π. Quanto vale <var>k</var>?`,
+    hint:`O setor é a fração ${th}/360 do círculo inteiro.`,
+    sol:[`${th}° ÷ 360° = ${fr} do círculo`,`Círculo inteiro: π · ${r}² = ${r*r}π`,`Setor: ${r*r}π · ${fr} = ${fm(k)}π`]};
+}
+function qWheel(){
+  const r=pick([20,25,30,35,40,50]),n=R(1,4),v=Math.round(6.28*r*n*100)/100;
+  return {type:'num',answer:v,tol:.06,label:'d =',unit:'cm',fig:circFig('r',`${r} cm`),
+    prompt:`Uma roda de raio ${r} cm dá ${n} ${n>1?'voltas completas':'volta completa'}. Quantos centímetros ela anda? Use π = 3,14.`,
+    hint:'Uma volta = comprimento da circunferência = 2 · π · r.',
+    sol:[`1 volta = 2 · 3,14 · ${r} = ${fm(6.28*r)} cm`,`${n} ${n>1?'voltas':'volta'} = ${fm(6.28*r)} · ${n} = ${fm(v)} cm`]};
+}
+
+const PHASES=[
+  {n:3,forma:'Triângulo',nome:'Ângulos',desc:'Retas, ângulos opostos e a soma 180° do triângulo.',gens:[qSupl,qComp,qVert,qTri,qTriMax]},
+  {n:4,forma:'Quadrado',nome:'Perímetro e área',desc:'Lados escritos com x: monte a equação e resolva.',gens:[qPerim,qSqArea,qRectArea,qTriArea]},
+  {n:5,forma:'Pentágono',nome:'Pitágoras',desc:'a² + b² = c² em triângulos, escadas e telas.',gens:[qHyp,qLeg,qPyAlg,qLadder,qDiag]},
+  {n:6,forma:'Hexágono',nome:'Plano cartesiano',desc:'Toque no plano para marcar pontos, médios e simétricos.',gens:[qPlot,qRect4,qMid,qReflect,qTranslate]},
+  {n:7,forma:'Heptágono',nome:'Retas e funções',desc:'Inclinação, coeficiente linear e raízes de y = mx + b.',gens:[qSlope,qB,qLaw,qRootClick,qEvalClick]},
+  {n:8,forma:'Octógono',nome:'Sistemas',desc:'Duas retas, um ponto em comum. Carros, motos e balanças.',gens:[qSysClick,qSysSum,qSysSubst,qCars,qTriple]},
+  {n:9,forma:'Eneágono',nome:'Círculos',desc:'Comprimento, área e setores em função de π.',gens:[qCircArea,qCircLen,qCircAlg,qCircR,qSector,qWheel]},
+  {n:10,forma:'Decágono',nome:'Desafio final',desc:'Tudo misturado: 8 questões, 3 vidas.',gens:'all',count:8},
+];
+
+/* ===== progresso ===== */
+const KEY='rota-poligonos-v1';
+const MODES={facil:{nome:'Fácil',lives:Infinity,hints:6},dificil:{nome:'Difícil',lives:3,hints:3}};
+let prog={stars:{},best:{},free:false,mode:'facil',hints:{facil:6,dificil:3}};
+try{const s=localStorage.getItem(KEY);if(s)prog=Object.assign(prog,JSON.parse(s))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}};
+if(!MODES[prog.mode])prog.mode='facil';
+const hintsLeft=()=>prog.hints?.[prog.mode]??MODES[prog.mode].hints;
+const unlocked=i=>i===0||prog.free||(prog.stars[i-1]||0)>0;
+const starStr=n=>[0,1,2].map(i=>`<span class="${i<n?'on':''}">★</span>`).join('');
+
+/* ===== mapa ===== */
+function renderMap(){
+  const tot=Object.values(prog.stars).reduce((a,b)=>a+b,0),pts=Object.values(prog.best).reduce((a,b)=>a+b,0);
+  $('#totStars').textContent=`★ ${tot} / ${PHASES.length*3}`;
+  $('#totScore').textContent=`${pts.toLocaleString('pt-BR')} pontos`;
+  $('#free').checked=!!prog.free;
+  document.querySelectorAll('.mode').forEach(b=>b.setAttribute('aria-checked',b.dataset.mode===prog.mode));
+  $('#hintsLeft').textContent=`Dicas restantes: ${hintsLeft()} de ${MODES[prog.mode].hints}`;
+  const rp=PHASES.map((ph,i)=>[50+i*100,i%2?64:36]);
+  $('#route').innerHTML=`<path class="route-line" d="M${rp.map(p=>p.join(' ')).join(' L')}"/>`+PHASES.map((ph,i)=>{const st=prog.stars[i]||0;
+    return `<polygon class="rnode ${st?'done':unlocked(i)?'open':'lock'}" style="--c:var(--p${i});--cs:var(--p${i}s)" points="${polyPts(ph.n,rp[i][0],rp[i][1],24).map(p=>p.join(',')).join(' ')}"/>`}).join('');
+  $('#phases').innerHTML=PHASES.map((ph,i)=>{
+    const open=unlocked(i),st=prog.stars[i]||0;
+    return `<button class="card ${st?'done':''}" style="--c:var(--p${i});--cs:var(--p${i}s)" data-i="${i}" ${open?'':'disabled'} type="button">
+      <svg viewBox="0 0 72 72" width="72" height="72" aria-hidden="true">${poly(polyPts(ph.n,36,37,30),'poly')}</svg>
+      <div>
+        <div class="eyebrow">Fase ${i+1} · ${ph.forma}</div>
+        <h3>${ph.nome}</h3>
+        <div class="desc">${ph.desc}</div>
+        ${open?`<div class="stars" aria-label="${st} de 3 estrelas">${starStr(st)}</div>`:'<div class="lockmsg">Complete a fase anterior</div>'}
+      </div></button>`;
+  }).join('');
+}
+$('#phases').addEventListener('click',e=>{const c=e.target.closest('.card');if(c&&!c.disabled)startPhase(+c.dataset.i)});
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{prog.mode=b.dataset.mode;save();renderMap()}));
+let resetArm=null;
+$('#resetBtn').addEventListener('click',()=>{
+  const b=$('#resetBtn');
+  if(!resetArm){b.textContent='Clique de novo para apagar estrelas e recuperar as dicas';b.classList.add('warn');resetArm=setTimeout(()=>{resetArm=null;b.textContent='Recomeçar o jogo';b.classList.remove('warn')},4000);return}
+  clearTimeout(resetArm);resetArm=null;b.textContent='Recomeçar o jogo';b.classList.remove('warn');
+  prog.stars={};prog.best={};prog.hints={facil:6,dificil:3};save();renderMap();
+});
+$('#free').addEventListener('change',e=>{prog.free=e.target.checked;save();renderMap()});
+function showMap(){$('#map').hidden=false;$('#play').hidden=true;renderMap();window.scrollTo(0,0)}
+$('#backBtn').addEventListener('click',showMap);
+
+/* ===== jogo ===== */
+let G=null;
+function startPhase(i){
+  const ph=PHASES[i];
+  const gens=ph.gens==='all'?shuffle(PHASES.slice(0,7).flatMap(p=>p.gens)).slice(0,ph.count):shuffle(ph.gens.slice()).slice(0,5);
+  G={pi:i,qs:gens.map(g=>g()),i:0,lives:MODES[prog.mode].lives,score:0,errors:0,res:[]};$('#play').dataset.ph=i;
+  $('#map').hidden=true;$('#play').hidden=false;$('#qa').hidden=false;$('#result').hidden=true;
+  $('#phTitle').textContent=`Fase ${i+1} · ${ph.nome} · ${MODES[prog.mode].nome}`;
+  window.scrollTo(0,0);renderQ();
+}
+function renderHud(){
+  const inf=!isFinite(G.lives);
+  $('#hearts').innerHTML=inf?'♥<span class="inf">∞</span>':[0,1,2].map(i=>`<span class="${i<G.lives?'':'lost'}">♥</span>`).join('');
+  $('#hearts').setAttribute('aria-label',inf?'vidas infinitas':`${G.lives} vidas`);
+  $('#hudHints').textContent=`Dicas: ${hintsLeft()}`;
+  {const n=PHASES[G.pi].n,ok=G.res.filter(r=>r===true).length,lit=Math.round(n*ok/G.qs.length),pp=polyPts(n,22,22,17);
+   $('#pips').innerHTML=`<svg class="hudpoly" viewBox="0 0 44 44" width="40" height="40" aria-hidden="true">${pp.map((p,i)=>{const e=pp[(i+1)%n];return `<line class="${i<lit?'lit':''}" x1="${p[0]}" y1="${p[1]}" x2="${e[0]}" y2="${e[1]}"/>`}).join('')}</svg><span>${ok}/${G.qs.length}</span>`;}
+  $('#score').textContent=`${G.score} pts`;
+}
+function renderQ(){
+  const q=G.qs[G.i];G.st={tries:0,hint:false,done:false,pick:null};
+  $('#qnum').textContent=`Questão ${G.i+1} de ${G.qs.length}`;
+  const stage=$('#stage');stage.className='stage';stage.innerHTML=q.fig;
+  $('#prompt').innerHTML=q.prompt;
+  $('#numRow').hidden=q.type!=='num';$('#clickRow').hidden=q.type!=='click';
+  $('#ansLabel').textContent=q.label||'x =';$('#unit').textContent=q.unit||'';
+  const a=$('#ans');a.value='';a.disabled=false;
+  ['#hintBox','#fb','#sol','#next','#giveup'].forEach(s=>$(s).hidden=true);
+  $('#check').hidden=false;$('#hintBtn').hidden=false;setHintBtn();$('#pickTxt').textContent='nenhum';
+  if(q.type==='click') setupBoard(); else if(!coarse) setTimeout(()=>a.focus({preventScroll:true}),30);
+  $('#pad').hidden=q.type!=='num';setupBal(q);
+  renderHud();
+}
+function setupBoard(){
+  const b=$('#board');
+  const clamp=v=>Math.max(-6,Math.min(6,v));
+  b.addEventListener('pointerdown',e=>{
+    if(G.st.done)return;const p=b.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+    const s=p.matrixTransform(b.getScreenCTM().inverse());
+    const step=G.qs[G.i].answer.some(v=>!Number.isInteger(v))?2:1;
+    setPick(clamp(Math.round((s.x-O)/U*step)/step),clamp(Math.round((O-s.y)/U*step)/step));
+  });
+  b.addEventListener('pointermove',e=>{
+    if(G.st.done||e.pointerType==='touch')return;const p=b.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+    const s=p.matrixTransform(b.getScreenCTM().inverse()),x=clamp(Math.round((s.x-O)/U)),y=clamp(Math.round((O-s.y)/U));
+    $('#ghostLayer').innerHTML=`<circle class="ghost" cx="${gx(x)}" cy="${gy(y)}" r="10"/><text class="ghost-t" x="${gx(x)+13}" y="${gy(y)+18}">${pt(x,y)}</text>`;
+  });
+  b.addEventListener('pointerleave',()=>{$('#ghostLayer').innerHTML=''});
+  b.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();G.st.done?next():check();return}
+    const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]}[e.key];
+    if(!d||G.st.done)return;e.preventDefault();
+    const [x,y]=G.st.pick||[0,0];setPick(clamp(x+d[0]),clamp(y+d[1]));
+  });
+}
+function setPick(x,y,cls=''){
+  G.st.pick=[x,y];
+  $('#pickLayer').innerHTML=L(gx(x),gy(y),gx(x),gy(0),'guide')+L(gx(x),gy(y),gx(0),gy(y),'guide')+`<circle class="pick ${cls}" cx="${gx(x)}" cy="${gy(y)}" r="8"/>`;
+  $('#pickTxt').textContent=pt(x,y);
+}
+function feedback(cls,html){const f=$('#fb');f.className='fb '+cls;f.innerHTML=html;f.hidden=false}
+function showSol(){const q=G.qs[G.i];$('#solList').innerHTML=q.sol.map(s=>`<li>${s}</li>`).join('');$('#sol').hidden=false}
+function finishQ(){G.st.done=true;$('#check').hidden=true;$('#hintBtn').hidden=true;$('#giveup').hidden=true;$('#ans').disabled=true;
+  const last=G.lives<=0||G.i+1>=G.qs.length;$('#next').textContent=last?'Ver resultado →':'Próxima →';$('#next').hidden=false;setTimeout(()=>$('#next').focus({preventScroll:true}),30)}
+function check(){
+  const q=G.qs[G.i],st=G.st;if(st.done)return;
+  let ok;
+  if(q.type==='num'){
+    const v=parseNum($('#ans').value);
+    if(isNaN(v)){feedback('info','Digite um número, como 12, −4 ou 3,5.');return}
+    ok=Math.abs(v-q.answer)<=(q.tol??0.01);
+  }else{
+    if(!st.pick){feedback('info','Toque no plano para marcar um ponto primeiro.');return}
+    ok=st.pick[0]===q.answer[0]&&st.pick[1]===q.answer[1];
+  }
+  const stage=$('#stage');
+  if(ok){
+    const bonus=st.tries===0&&!st.hint?50:0;G.score+=100+bonus;G.res[G.i]=true;
+    feedback('good',`Certo! +${100+bonus} pontos${bonus?' (bônus de primeira)':''}`);
+    stage.classList.add('flash-ok');burst();if(q.type==='click')setPick(...st.pick,'ok');
+    showSol();finishQ();
+  }else{
+    st.tries++;G.lives--;G.errors++;
+    stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');
+    if(q.type==='click')setPick(...st.pick,'bad');
+    if(G.lives<=0){G.res[G.i]=false;feedback('bad','Não foi dessa vez, e suas vidas acabaram. Veja a resolução.');revealAnswer();showSol();finishQ()}
+    else{feedback('bad',`Ainda não. ${isFinite(G.lives)?'Você perdeu uma vida. ':''}Tente outra vez${q.type==='num'?'':' (toque em outro ponto)'} ou veja a resolução.`);$('#giveup').hidden=false;
+      if(q.type==='num'){$('#ans').select()}}
+  }
+  renderHud();
+}
+function revealAnswer(){
+  const q=G.qs[G.i];
+  if(q.type==='click'){$('#pickLayer').insertAdjacentHTML('beforeend',`<circle class="ans" cx="${gx(q.answer[0])}" cy="${gy(q.answer[1])}" r="12"/>`)}
+  else {$('#ans').value=fm(q.answer);updateBal()}
+}
+$('#check').addEventListener('click',check);
+function setHintBtn(){const n=hintsLeft(),b=$('#hintBtn');b.disabled=n<=0;b.textContent=n>0?`Dica (${n} ${n===1?'restante':'restantes'})`:'Sem dicas';b.style.opacity=n>0?'':'.5'}
+$('#hintBtn').addEventListener('click',()=>{if(hintsLeft()<=0||G.st.done||G.st.hint)return;const q=G.qs[G.i];G.st.hint=true;
+  prog.hints={...(prog.hints||{}),[prog.mode]:hintsLeft()-1};save();renderHud();setHintBtn();const h=$('#hintBox');h.innerHTML='<b>Dica:</b> '+q.hint;h.hidden=false;$('#hintBtn').hidden=true});
+$('#giveup').addEventListener('click',()=>{G.res[G.i]=false;feedback('info','Sem pontos nesta questão. A resposta certa está destacada.');revealAnswer();showSol();finishQ();renderHud()});
+$('#next').addEventListener('click',()=>next());
+$('#ans').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();G.st.done?next():check()}});
+function next(){
+  if(G.lives<=0||G.i+1>=G.qs.length){endPhase(G.lives>0);return}
+  G.i++;renderQ();
+}
+function endPhase(win){
+  const i=G.pi,ph=PHASES[i],stars=win?(G.errors===0?3:G.errors<=2?2:1):0;
+  const prev=prog.stars[i]||0;
+  if(win){prog.stars[i]=Math.max(prev,stars);prog.best[i]=Math.max(prog.best[i]||0,G.score);save()}
+  const hasNext=i+1<PHASES.length;
+  const pts=polyPts(ph.n,90,92,74);
+  $('#qa').hidden=true;
+  const r=$('#result');r.hidden=false;
+  r.innerHTML=`<div class="result">
+    <svg viewBox="0 0 180 180" aria-hidden="true"><polygon class="poly ${win?'fill':''} draw" pathLength="1000" points="${pts.map(p=>p.join(',')).join(' ')}"/></svg>
+    <div>
+      <div class="eyebrow">Fase ${i+1} · ${ph.forma}</div>
+      <h2>${win?'Polígono fechado!':'Suas vidas acabaram'}</h2>
+      ${win?`<div class="stars" aria-label="${stars} de 3 estrelas">${starStr(stars)}</div>`:''}
+      <p>${win?(stars===3?'Nenhum erro. Fase perfeita.':`Você errou ${G.errors} ${G.errors===1?'vez':'vezes'}. Jogue de novo para tentar 3 estrelas: as questões mudam a cada partida.`)+(hasNext?' A próxima fase está liberada.':' Você completou a rota inteira!'):'Cada partida sorteia números novos. Leia as resoluções e tente de novo.'}</p>
+      <div class="num">${G.score} pontos · recorde da fase: ${prog.best[i]||0} · dicas restantes: ${hintsLeft()}</div>
+      <div class="btns" style="margin-top:18px">
+        ${win&&hasNext?`<button class="btn" id="rNext" type="button">Fase ${i+2}: ${PHASES[i+1].nome} →</button>`:''}
+        <button class="btn ${win&&hasNext?'ghost':''}" id="rRetry" type="button">Jogar de novo</button>
+        <button class="btn ghost" id="rMap" type="button">Voltar ao mapa</button>
+      </div>
+    </div></div>`;
+  if($('#rNext'))$('#rNext').onclick=()=>startPhase(i+1);
+  $('#rRetry').onclick=()=>startPhase(i);$('#rMap').onclick=showMap;
+  renderHud();
+}
+
+/* ===== balança, teclado e comemoração ===== */
+const coarse=matchMedia('(pointer: coarse)').matches;
+if(coarse)$('#ans').setAttribute('inputmode','none');
+function setupBal(q){
+  const box=$('#bal');box.classList.remove('ok');
+  if(q.type!=='num'||!q.bal){box.hidden=true;return}
+  const b=q.bal,pan=(id,x,vid)=>`<g id="${id}" class="pan"><line x1="${x}" y1="62" x2="${x-46}" y2="112"/><line x1="${x}" y1="62" x2="${x+46}" y2="112"/><path d="M${x-58} 112 H${x+58} Q${x+54} 138 ${x} 138 Q${x-54} 138 ${x-58} 112Z"/><text id="${vid}" x="${x}" y="98" text-anchor="middle">?</text></g>`;
+  box.hidden=false;
+  box.innerHTML=`<div class="bal-head"><span class="eyebrow">Balança · teste seu valor</span><span class="bal-msg" id="balMsg">Digite um valor para pesar</span></div>
+    <svg class="balsvg" viewBox="0 0 440 190" aria-hidden="true">
+      <polygon class="fulcrum" points="220,62 192,168 248,168"/><rect class="foot" x="160" y="166" width="120" height="9" rx="4"/>
+      ${pan('panL',80,'valL')}${pan('panR',360,'valR')}
+      <g id="beam" class="beam"><line x1="80" y1="62" x2="360" y2="62"/><circle cx="220" cy="62" r="7"/></g>
+    </svg>
+    <div class="bal-eq"><span class="c1">${b.lt}</span><span class="vs">⟷</span><span class="c2">${b.rt??fm(b.r)}</span></div>`;
+  updateBal();
+}
+function updateBal(){
+  const q=G&&G.qs[G.i],box=$('#bal');if(!q||!q.bal||box.hidden)return;
+  const b=q.bal,v=parseNum($('#ans').value),rf=typeof b.r==='function';
+  let th=0,msg='Digite um valor para pesar',L='?',Rt=rf?'?':fm(b.r),ok=false;
+  if(!isNaN(v)){
+    const l=b.l(v),r=rf?b.r(v):b.r,diff=l-r;L=fm(l);Rt=fm(r);
+    if(Math.abs(diff)<1e-6){ok=true;msg='Equilibrada! Os dois lados são iguais.'}
+    else{th=-Math.max(-16,Math.min(16,diff/Math.max(Math.abs(l),Math.abs(r),1)*45));if(Math.abs(th)<4)th=th<0?-4:4;
+      msg=diff>0?'A esquerda está mais pesada':'A direita está mais pesada'}
+  }
+  const dy=r1(140*Math.sin(th*Math.PI/180));
+  $('#beam').style.transform=`rotate(${th}deg)`;
+  $('#panL').style.transform=`translateY(${-dy}px)`;$('#panR').style.transform=`translateY(${dy}px)`;
+  $('#valL').textContent=L;$('#valR').textContent=Rt;$('#balMsg').textContent=msg;box.classList.toggle('ok',ok);
+}
+$('#ans').addEventListener('input',updateBal);
+$('#pad').addEventListener('click',e=>{
+  const k=e.target.closest('button');if(!k||!G||G.st.done)return;
+  const a=$('#ans'),t=k.dataset.k;let v=a.value;
+  if(t==='back')v=v.slice(0,-1);else if(t==='clear')v='';else if(t==='-')v=/^[−-]/.test(v)?v.slice(1):M+v;else v+=t;
+  a.value=v;updateBal();
+});
+function burst(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const st=$('#stage'),shapes=['polygon(50% 0,100% 100%,0 100%)','polygon(0 0,100% 0,100% 100%,0 100%)','polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%)','polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)'];
+  for(let i=0;i<22;i++){
+    const s=document.createElement('span'),a=Math.random()*Math.PI*2,d=80+Math.random()*150;s.className='bit';
+    s.style.cssText=`left:50%;top:50%;--dx:${r1(Math.cos(a)*d)}px;--dy:${r1(Math.sin(a)*d-30)}px;--rot:${R(-360,360)}deg;clip-path:${pick(shapes)};background:var(${pick(['--cobalt','--amber','--rose'])})`;
+    st.appendChild(s);setTimeout(()=>s.remove(),1000);
+  }
+}
+
+renderMap();
+</script>
+</body>
+</html>
