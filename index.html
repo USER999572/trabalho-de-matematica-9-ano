@@ -294,7 +294,7 @@ var{font-family:var(--mono); font-style:italic; background:var(--mark); padding:
       <div><b>Modos</b>Fácil: vidas infinitas e 6 dicas. Difícil: 3 vidas por fase e 3 dicas. As dicas valem para o jogo inteiro, não para cada fase.</div>
       <div><b>Pontos</b>100 por acerto. Mais 50 se acertar de primeira sem pedir dica.</div>
       <div><b>Estrelas</b>Sem erros: 3 estrelas. Até 2 erros: 2. Mais que isso: 1.</div>
-      <div><b>Respostas</b>Digite números como 12, −4 ou 3,5. No plano cartesiano, toque no ponto.</div>
+      <div><b>Respostas</b>Digite números como 12, −4 ou 3,5, pelo teclado ou pelos botões na tela.</div>
     </div>
   </section>
 
@@ -425,18 +425,7 @@ function rightTri(a,b,la,lb,lc){
   return svg(400,270,s);
 }
 
-/* plano cartesiano */
 const U=28,O=200,gx=x=>O+x*U,gy=y=>O-y*U;
-function grid(inner='',board=false){
-  let s=`<defs><clipPath id="gc"><rect x="${gx(-6.5)}" y="${gy(6.5)}" width="${13*U}" height="${13*U}"/></clipPath></defs>`;
-  for(let i=-6;i<=6;i++) s+=L(gx(i),gy(-6.5),gx(i),gy(6.5),'gl')+L(gx(-6.5),gy(i),gx(6.5),gy(i),'gl');
-  s+=L(gx(-6.5),gy(0),gx(6.6),gy(0),'ax')+L(gx(0),gy(-6.5),gx(0),gy(6.6),'ax');
-  s+=T(gx(6.75),gy(0),'x','small')+T(gx(0),gy(6.85),'y','small');
-  for(const i of [-6,-4,-2,2,4,6]) s+=T(gx(i),gy(0)+13,fm(i),'small')+T(gx(0)-8,gy(i),fm(i),'small','end');
-  return svg(400,400,s+`<g clip-path="url(#gc)">${inner}</g><g id="ghostLayer"></g><g id="pickLayer"></g>`,board?'id="board" tabindex="0" aria-label="Plano cartesiano: toque para marcar um ponto"':'');
-}
-const gLine=(m,b,c)=>L(gx(-7),r1(gy(-7*m+b)),gx(7),r1(gy(7*m+b)),'gline '+c);
-const gPt=(x,y,lab)=>`<circle class="pt" cx="${gx(x)}" cy="${gy(y)}" r="5.5"/>`+(lab?T(gx(x)+11,gy(y)-12,lab,'','start'):'');
 const eqBox=lines=>`<div class="eqbox">${lines.map(l=>`<div>${l}</div>`).join('')}</div>`;
 
 /* ===== geradores de questões ===== */
@@ -614,12 +603,13 @@ function sysData(range,bmax){
   let p,q,m1,m2,b1,b2;do{p=R(-range,range);q=R(-range,range);m1=pick([-2,-1,0,1,2]);m2=pick([-2,-1,1,2]);b1=q-m1*p;b2=q-m2*p}while(m1===m2||Math.abs(b1)>bmax||Math.abs(b2)>bmax);
   return {p,q,m1,m2,b1,b2,steps:[`${lin(m1,b1)} = ${lin(m2,b2)}`,...solveLin(m1-m2,0,b2-b1),`y = ${subst(m1,b1,p)} = ${fm(q)}`]};
 }
-function qSysClick(){
-  const d=sysData(3,5);
-  return {type:'click',answer:[d.p,d.q],fig:grid(gLine(d.m1,d.b1,'l1')+gLine(d.m2,d.b2,'l2'),true),
-    prompt:`Marque a solução do sistema:<br><span class="eq c1">y = ${lin(d.m1,d.b1)}</span><span class="eq c2">y = ${lin(d.m2,d.b2)}</span>`,
-    hint:'A solução é o ponto onde as duas retas se cruzam.',
-    sol:[...d.steps,`Solução: ${pt(d.p,d.q)}`]};
+function qPrices(){
+  const l=R(4,12),su=R(2,6),a=l+su,b=2*l+su;
+  return {type:'num',answer:l,label:'lanche = R$',fig:eqBox([`<span class="c1">1 lanche + 1 suco = R$ ${a}</span>`,`<span class="c2">2 lanches + 1 suco = R$ ${b}</span>`]),
+    bal:{l:v=>v+a,lt:`lanche + ${a}`,r:b},
+    prompt:'Quanto custa <b>um lanche</b>?',
+    hint:'Compare as duas compras: o que a segunda tem a mais que a primeira?',
+    sol:[`A segunda compra tem 1 lanche a mais.`,`lanche = ${b} ${M} ${a} = R$ ${l}`]};
 }
 function qSysSum(){
   const x=R(4,12),y=R(1,x-1),S=x+y,D=x-y,askX=Math.random()<.5;
@@ -662,7 +652,7 @@ const PHASES=[
   {n:3,forma:'Triângulo',nome:'Ângulos',desc:'Retas, ângulos opostos e a soma 180° do triângulo.',gens:[qSupl,qComp,qVert,qTri,qTriIso]},
   {n:4,forma:'Quadrado',nome:'Perímetro e área',desc:'Some os lados e multiplique: retângulos, quadrados, triângulos e terrenos em L.',gens:[qRectPer,qRectArea,qSqPer,qSqArea,qTriArea,qTriPer,qLShape,qSqSide,qRectMissing]},
   {n:5,forma:'Pentágono',nome:'Pitágoras',desc:'a² + b² = c² com números pequenos, mais área e perímetro.',gens:[qHyp,qLeg,qLadder,qDiag,qRightArea,qRightPer]},
-  {n:6,forma:'Hexágono',nome:'Sistemas',desc:'Duas retas, um ponto em comum. Carros, motos e barras.',gens:[qSysClick,qSysSum,qSysSubst,qCars,qTriple]},
+  {n:6,forma:'Hexágono',nome:'Sistemas',desc:'Duas equações ao mesmo tempo: preços, carros e motos, somas e barras.',gens:[qPrices,qSysSum,qSysSubst,qCars,qTriple]},
   {n:7,forma:'Heptágono',nome:'Desafio final',desc:'Uma questão de cada fase: ângulos, área e perímetro, Pitágoras e sistemas.',gens:'all'},
 ];
 
