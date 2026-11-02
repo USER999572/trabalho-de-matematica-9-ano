@@ -44,6 +44,7 @@ body{
   padding-block:24px 56px;
 }
 .wrap{max-width:1080px; margin:0 auto; display:grid; gap:28px}
+.wrap .wrap{max-width:none; margin:0; min-width:0}
 h1,h2,h3{font-family:var(--display); text-wrap:balance; margin:0; line-height:1.15}
 button{font:inherit; color:inherit}
 :focus-visible{outline:3px solid var(--cobalt); outline-offset:3px; border-radius:6px}
@@ -127,6 +128,7 @@ var{font-family:var(--mono); font-style:italic; background:var(--mark); padding:
 .fig .pick.ok{fill:var(--good)} .fig .pick.bad{fill:var(--bad)}
 .fig .ans{fill:none; stroke:var(--good); stroke-width:3}
 .fig .guide{stroke:var(--cobalt); stroke-width:1.5; stroke-dasharray:4 4}
+.fig .gridfill{fill-opacity:.6}
 .fig .bar{fill:var(--cobalt-soft); stroke:var(--cobalt); stroke-width:2}
 .fig .bar2{fill:var(--mark); stroke:var(--amber); stroke-width:2}
 .fig .body{fill:var(--cobalt-soft); stroke:var(--ink); stroke-width:2}
@@ -438,142 +440,176 @@ const gPt=(x,y,lab)=>`<circle class="pt" cx="${gx(x)}" cy="${gy(y)}" r="5.5"/>`+
 const eqBox=lines=>`<div class="eqbox">${lines.map(l=>`<div>${l}</div>`).join('')}</div>`;
 
 /* ===== geradores de questões ===== */
-// Fase 1 · Ângulos
+const nz=(a,b)=>{let v;do{v=R(a,b)}while(v===0);return v};
+const pt=(x,y)=>`(${fm(x)}, ${fm(y)})`;
+
+// Fase 1 · Ângulos (números redondos, uma conta só)
 function qSupl(){
-  let x,a,b,c,d,A1,A2;
-  do{x=R(8,30);a=R(2,4);b=pick([0,5,10,15,20,-5,-10]);A1=a*x+b;A2=180-A1;c=R(1,3);d=A2-c*x}while(A1<40||A2<40||Math.abs(d)>70||(a===c&&b===d));
-  const cx=200,cy=178,[rx,ry]=P(cx,cy,165,A1);
-  let s=L(18,cy,382,cy)+L(cx,cy,rx,ry)+arc(cx,cy,40,0,A1,'k1')+arc(cx,cy,56,A1,180,'k2');
-  s+=T(...P(cx,cy,104,A1/2),lin(a,b)+'°','c1')+T(...P(cx,cy,104,(A1+180)/2),lin(c,d)+'°','c2')+dot(cx,cy);
-  return {type:'num',answer:x,fig:svg(400,200,s),
-    bal:{l:v=>(a+c)*v+b+d,lt:`${lin(a,b)} + ${lin(c,d)}`,r:180},prompt:'Os dois ângulos estão apoiados na mesma reta. Quanto vale <var>x</var>?',
-    hint:'Ângulos que juntos formam uma reta são suplementares: somam 180°.',
-    sol:[`${lin(a,b)} + ${lin(c,d)} = 180`,...solveLin(a+c,b+d,180)]};
+  const A=pick([30,40,50,60,70,80,100,110,120,130,140,150]),k=pick([1,1,2]),X=180-A,x=X/k;
+  const cx=200,cy=178,[rx,ry]=P(cx,cy,165,X);
+  let s=L(18,cy,382,cy)+L(cx,cy,rx,ry)+arc(cx,cy,40,0,X,'k1')+arc(cx,cy,56,X,180,'k2');
+  s+=T(...P(cx,cy,104,X/2),lin(k,0),'c1')+T(...P(cx,cy,104,(X+180)/2),A+'°','c2')+dot(cx,cy);
+  return {type:'num',answer:x,fig:svg(400,200,s),bal:{l:v=>k*v+A,lt:`${lin(k,0)} + ${A}`,r:180},
+    prompt:'Os dois ângulos estão apoiados na mesma reta. Quanto vale <var>x</var>?',
+    hint:'Ângulos que juntos formam uma reta somam 180°.',
+    sol:[`${lin(k,0)} + ${A} = 180`,...solveLin(k,A,180)]};
 }
 function qComp(){
-  let x,a,b,c,d,A1,A2;
-  do{x=R(4,20);a=R(2,4);b=pick([0,5,10,-5,-10]);A1=a*x+b;A2=90-A1;c=R(1,2);d=A2-c*x}while(A1<25||A2<25||(a===c&&b===d));
-  const vx=70,vy=225;
-  let s=L(vx,vy,...P(vx,vy,310,0))+L(vx,vy,...P(vx,vy,200,90))+L(vx,vy,...P(vx,vy,240,A1))+rightMark(vx,vy);
-  s+=arc(vx,vy,48,0,A1,'k1')+arc(vx,vy,64,A1,90,'k2');
-  s+=T(...P(vx,vy,128,A1/2),lin(a,b)+'°','c1')+T(...P(vx,vy,118,(A1+90)/2),lin(c,d)+'°','c2','start');
-  return {type:'num',answer:x,fig:svg(400,250,s),
-    bal:{l:v=>(a+c)*v+b+d,lt:`${lin(a,b)} + ${lin(c,d)}`,r:90},prompt:'O ângulo marcado com o quadradinho é reto e foi dividido em dois. Quanto vale <var>x</var>?',
-    hint:'Um ângulo reto mede 90°. As duas partes são complementares.',
-    sol:[`${lin(a,b)} + ${lin(c,d)} = 90`,...solveLin(a+c,b+d,90)]};
+  const A=pick([20,30,40,50,60,70]),k=pick([1,1,2]),X=90-A,x=X/k,vx=70,vy=225;
+  let s=L(vx,vy,...P(vx,vy,310,0))+L(vx,vy,...P(vx,vy,200,90))+L(vx,vy,...P(vx,vy,240,X))+rightMark(vx,vy);
+  s+=arc(vx,vy,48,0,X,'k1')+arc(vx,vy,64,X,90,'k2');
+  s+=T(...P(vx,vy,128,X/2),lin(k,0),'c1')+T(...P(vx,vy,118,(X+90)/2),A+'°','c2','start');
+  return {type:'num',answer:x,fig:svg(400,250,s),bal:{l:v=>k*v+A,lt:`${lin(k,0)} + ${A}`,r:90},
+    prompt:'O ângulo com o quadradinho é reto (90°) e foi dividido em dois. Quanto vale <var>x</var>?',
+    hint:'As duas partes juntas somam 90°.',
+    sol:[`${lin(k,0)} + ${A} = 90`,...solveLin(k,A,90)]};
 }
 function qVert(){
-  let x,a,b,c,d,A;
-  do{x=R(5,25);c=R(1,3);a=c+R(1,3);b=pick([-20,-10,-5,0,5,10]);A=a*x+b;d=A-c*x}while(A<35||A>145);
+  const N=pick([40,50,60,70,80,100,110,120,130]),b=pick([10,20,30]),x=N-b;
   const cx=200,cy=130,al=R(5,25);
-  let s=L(...P(cx,cy,200,al),...P(cx,cy,200,al+180))+L(...P(cx,cy,200,al+A),...P(cx,cy,200,al+A+180));
-  s+=arc(cx,cy,36,al,al+A,'k1')+arc(cx,cy,36,al+180,al+180+A,'k2')+dot(cx,cy);
-  s+=T(...P(cx,cy,80,al+A/2),lin(a,b)+'°','c1')+T(...P(cx,cy,80,al+180+A/2),lin(c,d)+'°','c2');
-  return {type:'num',answer:x,fig:svg(400,260,s),
-    bal:{l:v=>a*v+b,lt:lin(a,b),r:v=>c*v+d,rt:lin(c,d)},prompt:'Duas retas se cruzam. Os ângulos marcados são opostos pelo vértice. Quanto vale <var>x</var>?',
-    hint:'Ângulos opostos pelo vértice têm a mesma medida. Iguale as duas expressões.',
-    sol:[`${lin(a,b)} = ${lin(c,d)}`,`${lin(a,0)} ${M} ${lin(c,0)} = ${fm(d)} ${b>=0?M:'+'} ${fm(Math.abs(b))}`,...solveLin(a-c,0,d-b)]};
-}
-function triData(){
-  let x,a1,a2,a3,b1,b2,b3,A,B,C;
-  do{x=R(10,30);a1=R(1,3);a2=R(1,3);b1=pick([0,5,10,-5]);b2=pick([0,10,20,-10]);A=a1*x+b1;B=a2*x+b2;C=180-A-B;a3=R(1,2);b3=C-a3*x}while(A<30||B<30||C<30||Math.abs(b3)>80);
-  const e=[lin(a1,b1),lin(a2,b2),lin(a3,b3)];
-  return {x,A,B,C,e,bal:{l:v=>(a1+a2+a3)*v+b1+b2+b3,lt:e.join(' + '),r:180},fig:triFig([A,B,C],e.map(t=>t+'°')),steps:[`${e[0]} + ${e[1]} + ${e[2]} = 180`,...solveLin(a1+a2+a3,b1+b2+b3,180)]};
+  let s=L(...P(cx,cy,200,al),...P(cx,cy,200,al+180))+L(...P(cx,cy,200,al+N),...P(cx,cy,200,al+N+180));
+  s+=arc(cx,cy,36,al,al+N,'k1')+arc(cx,cy,36,al+180,al+180+N,'k2')+dot(cx,cy);
+  s+=T(...P(cx,cy,80,al+N/2),lin(1,b)+'°','c1')+T(...P(cx,cy,80,al+180+N/2),N+'°','c2');
+  return {type:'num',answer:x,fig:svg(400,260,s),bal:{l:v=>v+b,lt:lin(1,b),r:N},
+    prompt:'Duas retas se cruzam. Os ângulos marcados são opostos pelo vértice. Quanto vale <var>x</var>?',
+    hint:'Ângulos opostos pelo vértice são iguais.',
+    sol:[`${lin(1,b)} = ${N}`,`x = ${N} ${M} ${b} = ${x}`]};
 }
 function qTri(){
-  const t=triData();
-  return {type:'num',answer:t.x,fig:t.fig,bal:t.bal,prompt:'Os três ângulos internos do triângulo estão escritos em função de <var>x</var>. Quanto vale <var>x</var>?',
-    hint:'A soma dos ângulos internos de qualquer triângulo é 180°.',sol:t.steps};
+  let A,B;do{A=pick([30,40,50,60,70,80,90]);B=pick([30,40,50,60,70,80])}while(180-A-B<30);const C=180-A-B;
+  return {type:'num',answer:C,fig:triFig([A,B,C],[A+'°',B+'°','x']),bal:{l:v=>v+A+B,lt:`x + ${A} + ${B}`,r:180},
+    prompt:'Dois ângulos do triângulo são conhecidos. Quanto vale o terceiro, <var>x</var>?',
+    hint:'Os três ângulos de qualquer triângulo somam 180°.',
+    sol:[`x + ${A} + ${B} = 180`,`x + ${A+B} = 180`,`x = 180 ${M} ${A+B} = ${C}`]};
 }
-function qTriMax(){
-  const t=triData(),mx=Math.max(t.A,t.B,t.C);
-  return {type:'num',answer:mx,label:'maior =',unit:'°',fig:t.fig,prompt:'Qual é a medida do <b>maior</b> ângulo deste triângulo?',
-    hint:'Descubra x usando a soma 180° e depois substitua nas três expressões.',
-    sol:[...t.steps,`Ângulos: ${t.A}°, ${t.B}° e ${t.C}°`,`Maior ângulo: ${mx}°`]};
+function qTriIso(){
+  const Tp=pick([20,40,60,80,100]),x=(180-Tp)/2;
+  return {type:'num',answer:x,fig:triFig([x,x,Tp],['x','x',Tp+'°']),bal:{l:v=>2*v+Tp,lt:`x + x + ${Tp}`,r:180},
+    prompt:'Este triângulo é isósceles: os dois ângulos da base são iguais. Quanto vale <var>x</var>?',
+    hint:'x + x + o ângulo de cima = 180°.',
+    sol:[`x + x + ${Tp} = 180`,`2x = 180 ${M} ${Tp} = ${180-Tp}`,`x = ${180-Tp} ÷ 2 = ${x}`]};
 }
 
-// Fase 2 · Perímetro e área
-function qPerim(){
-  let x,p,q,r,h;do{x=R(2,9);p=R(1,6);q=R(2,3);r=pick([0,-1,1,2,-2]);h=q*x+r}while(h<=0);
-  const w=x+p,Pm=2*(w+h);
-  return {type:'num',answer:x,fig:rectFig(w,h,lin(1,p),lin(q,r),`P = ${Pm}`),
-    bal:{l:v=>2*((1+q)*v+p+r),lt:`2·(${lin(1,p)} + ${lin(q,r)})`,r:Pm},prompt:`O perímetro deste retângulo é <b>${Pm}</b>. Quanto vale <var>x</var>?`,
-    hint:'Perímetro é a soma dos 4 lados: 2 · (base + altura).',
-    sol:[`2 · (${lin(1,p)} + ${lin(q,r)}) = ${Pm}`,`${lin(1,p)} + ${lin(q,r)} = ${Pm/2}`,...solveLin(1+q,p+r,Pm/2)]};
-}
-function qSqArea(){
-  const x=R(1,8),p=R(1,6),s=x+p,A=s*s;
-  return {type:'num',answer:x,fig:rectFig(1,1,lin(1,p),lin(1,p),`A = ${A}`),
-    bal:{l:v=>(v+p)**2,lt:`(${lin(1,p)})²`,r:A},prompt:`A área deste quadrado é <b>${A}</b>. Quanto vale <var>x</var>?`,
-    hint:'A área do quadrado é lado². Tire a raiz quadrada da área para achar o lado.',
-    sol:[`(${lin(1,p)})² = ${A}`,`${lin(1,p)} = √${A} = ${s}`,`x = ${s} ${M} ${p} = ${x}`]};
+// Fase 2 · Perímetro e área (cálculo direto)
+function rectWH(){let w,h;do{w=R(3,9);h=R(2,7)}while(w===h);return [w,h]}
+function qRectPer(){
+  const [w,h]=rectWH(),Pm=2*(w+h);
+  return {type:'num',answer:Pm,label:'P =',unit:'cm',fig:rectFig(w,h,`${w} cm`,`${h} cm`,'P = ?'),
+    prompt:'Qual é o <b>perímetro</b> deste retângulo?',hint:'Perímetro é a volta toda: some os 4 lados.',
+    sol:[`P = ${w} + ${h} + ${w} + ${h}`,`P = ${Pm} cm`]};
 }
 function qRectArea(){
-  let x,a,b,c,d,s1,s2;do{x=R(2,6);a=R(1,3);b=R(-2,5);c=R(1,3);d=R(-3,4);s1=a*x+b;s2=c*x+d}while(s1<2||s2<2||(a===c&&b===d));
-  return {type:'num',answer:s1*s2,label:'A =',fig:rectFig(s1,s2,lin(a,b),lin(c,d),'?'),
-    prompt:`Se <var>x</var> = ${x}, qual é a área deste retângulo?`,
-    hint:'Troque x pelo valor dado em cada lado e depois multiplique base × altura.',
-    sol:[`base = ${subst(a,b,x)} = ${s1}`,`altura = ${subst(c,d,x)} = ${s2}`,`área = ${s1} · ${s2} = ${s1*s2}`]};
+  const [w,h]=rectWH();
+  return {type:'num',answer:w*h,label:'A =',unit:'cm²',fig:rectFig(w,h,`${w} cm`,`${h} cm`,'A = ?'),
+    prompt:'Qual é a <b>área</b> deste retângulo?',hint:'Área do retângulo = base × altura.',
+    sol:['A = base × altura',`A = ${w} × ${h} = ${w*h} cm²`]};
+}
+function qSqPer(){
+  const s=R(2,10);
+  return {type:'num',answer:4*s,label:'P =',unit:'cm',fig:rectFig(1,1,`${s} cm`,`${s} cm`,'P = ?'),
+    prompt:'Qual é o <b>perímetro</b> deste quadrado?',hint:'O quadrado tem 4 lados iguais.',
+    sol:[`P = ${s} + ${s} + ${s} + ${s}`,`P = 4 × ${s} = ${4*s} cm`]};
+}
+function qSqArea(){
+  const s=R(2,10);
+  return {type:'num',answer:s*s,label:'A =',unit:'cm²',fig:rectFig(1,1,`${s} cm`,`${s} cm`,'A = ?'),
+    prompt:'Qual é a <b>área</b> deste quadrado?',hint:'Área do quadrado = lado × lado.',
+    sol:['A = lado × lado',`A = ${s} × ${s} = ${s*s} cm²`]};
 }
 function qTriArea(){
-  const B=pick([4,6,8,10,12]),x=R(2,9),p=R(1,5),h=x+p,A=B*h/2;
+  const B=pick([4,6,8,10,12]),h=R(2,8),A=B*h/2;
   const pts=fit([[0,0],[B,0],[B*.35,h],[B*.35,0]],400,250,44);
   let s=poly(pts.slice(0,3))+L(...pts[2],...pts[3],'dash')+rightMark(pts[3][0],pts[3][1],1,-1,12);
-  s+=T(r1((pts[0][0]+pts[1][0])/2),pts[0][1]+22,String(B),'c1')+T(pts[2][0]+10,r1((pts[2][1]+pts[3][1])/2),lin(1,p),'c2','start');
-  return {type:'num',answer:x,fig:svg(400,250,s),
-    bal:{l:v=>B*(v+p)/2,lt:`${B}·(${lin(1,p)}) ÷ 2`,r:A},prompt:`A área deste triângulo é <b>${fm(A)}</b>. A base mede ${B} e a altura (tracejada) mede ${lin(1,p)}. Quanto vale <var>x</var>?`,
-    hint:'Área do triângulo = base × altura ÷ 2.',
-    sol:[`${B} · (${lin(1,p)}) ÷ 2 = ${fm(A)}`,`${B/2} · (${lin(1,p)}) = ${fm(A)}`,`${lin(1,p)} = ${fm(A)} ÷ ${B/2} = ${h}`,`x = ${h} ${M} ${p} = ${x}`]};
+  s+=T(r1((pts[0][0]+pts[1][0])/2),pts[0][1]+22,`${B} cm`,'c1')+T(pts[2][0]+10,r1((pts[2][1]+pts[3][1])/2),`${h} cm`,'c2','start');
+  return {type:'num',answer:A,label:'A =',unit:'cm²',fig:svg(400,250,s),
+    prompt:'Qual é a <b>área</b> deste triângulo? A altura é a linha tracejada.',hint:'Área do triângulo = base × altura ÷ 2.',
+    sol:['A = base × altura ÷ 2',`A = ${B} × ${h} ÷ 2`,`A = ${B*h} ÷ 2 = ${A} cm²`]};
+}
+function qTriPer(){
+  const [a,b,c]=pick([[3,4,5],[5,5,6],[4,6,7],[6,6,6],[5,7,8],[4,5,6],[7,7,4]]);
+  const x=(a*a+c*c-b*b)/(2*a),y=Math.sqrt(c*c-x*x),pts=fit([[0,0],[a,0],[x,y]],400,250,46),g=centroid(pts);
+  const s=poly(pts)+sideLabel(pts[0],pts[1],g,`${a} cm`,'c1')+sideLabel(pts[1],pts[2],g,`${b} cm`,'c2',32)+sideLabel(pts[0],pts[2],g,`${c} cm`,'c3',32);
+  return {type:'num',answer:a+b+c,label:'P =',unit:'cm',fig:svg(400,250,s),
+    prompt:'Qual é o <b>perímetro</b> deste triângulo?',hint:'Some os 3 lados.',
+    sol:[`P = ${a} + ${b} + ${c} = ${a+b+c} cm`]};
+}
+function qLShape(){
+  const W=R(6,10),H=R(5,8),w=R(2,W-3),h=R(2,H-3),A=W*H-w*h;
+  const p=fit([[0,0],[W,0],[W,H-h],[W-w,H-h],[W-w,H],[0,H],[W,H]],400,260,46);
+  let s=poly(p.slice(0,6))+L(...p[4],...p[6],'dash')+L(...p[6],...p[2],'dash');
+  s+=T(r1((p[0][0]+p[1][0])/2),p[0][1]+22,`${W} m`,'c1')+T(p[0][0]-10,r1((p[0][1]+p[5][1])/2),`${H} m`,'c2','end');
+  s+=T(r1((p[4][0]+p[6][0])/2),p[4][1]-16,`${w} m`,'c3')+T(p[6][0]+10,r1((p[6][1]+p[2][1])/2),`${h} m`,'c3','start');
+  return {type:'num',answer:A,label:'A =',unit:'m²',fig:svg(400,260,s),
+    prompt:`Um terreno tem forma de L: é um retângulo de ${W} m por ${H} m sem o canto tracejado. Qual é a <b>área</b> do terreno?`,
+    hint:'Calcule a área do retângulo inteiro e tire a área do pedaço que falta.',
+    sol:[`Retângulo inteiro: ${W} × ${H} = ${W*H}`,`Pedaço que falta: ${w} × ${h} = ${w*h}`,`A = ${W*H} ${M} ${w*h} = ${A} m²`]};
+}
+function qSqSide(){
+  const s=R(2,12),Pm=4*s;
+  return {type:'num',answer:s,label:'lado =',unit:'cm',fig:rectFig(1,1,'?','?',`P = ${Pm}`),bal:{l:v=>4*v,lt:'4 × lado',r:Pm},
+    prompt:`O perímetro deste quadrado é ${Pm} cm. Quanto mede cada lado?`,hint:'São 4 lados iguais: divida o perímetro por 4.',
+    sol:[`4 × lado = ${Pm}`,`lado = ${Pm} ÷ 4 = ${s} cm`]};
+}
+function qRectMissing(){
+  const [w,h]=rectWH(),A=w*h;
+  return {type:'num',answer:h,label:'altura =',unit:'cm',fig:rectFig(w,h,`${w} cm`,'?',`A = ${A}`),bal:{l:v=>w*v,lt:`${w} × altura`,r:A},
+    prompt:`A área do retângulo é ${A} cm² e a base mede ${w} cm. Quanto mede a altura?`,hint:'Base × altura = área. Divida a área pela base.',
+    sol:[`${w} × altura = ${A}`,`altura = ${A} ÷ ${w} = ${h} cm`]};
 }
 
-// Fase 3 · Pitágoras
-const TRIPLES=[[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[12,16,20],[7,24,25],[20,21,29]];
+// Fase 3 · Pitágoras (triângulos pequenos)
+const TRIPLES=[[3,4,5],[6,8,10],[5,12,13]];
 function qHyp(){
   const [a,b,c]=pick(TRIPLES);
-  return {type:'num',answer:c,label:'h =',fig:rightTri(a,b,String(a),String(b),'?'),
-    bal:{l:v=>v*v,lt:'h²',r:a*a+b*b,rt:`${a}² + ${b}²`},prompt:'Este triângulo é retângulo. Quanto mede a hipotenusa?',
-    hint:'Teorema de Pitágoras: hipotenusa² = cateto² + cateto².',
+  return {type:'num',answer:c,label:'h =',fig:rightTri(a,b,String(a),String(b),'?'),bal:{l:v=>v*v,lt:'h²',r:a*a+b*b,rt:`${a}² + ${b}²`},
+    prompt:'Este triângulo é retângulo. Quanto mede a hipotenusa (o lado maior)?',
+    hint:'hipotenusa² = cateto² + cateto².',
     sol:[`h² = ${a}² + ${b}²`,`h² = ${a*a} + ${b*b} = ${c*c}`,`h = √${c*c} = ${c}`]};
 }
 function qLeg(){
   const [a,b,c]=pick(TRIPLES);
-  return {type:'num',answer:b,label:'c =',fig:rightTri(a,b,String(a),'?',String(c)),
-    bal:{l:v=>a*a+v*v,lt:`${a}² + c²`,r:c*c,rt:`${c}²`},prompt:'Neste triângulo retângulo, quanto mede o cateto que falta?',
+  return {type:'num',answer:b,label:'c =',fig:rightTri(a,b,String(a),'?',String(c)),bal:{l:v=>a*a+v*v,lt:`${a}² + c²`,r:c*c,rt:`${c}²`},
+    prompt:'Neste triângulo retângulo, quanto mede o lado que falta?',
     hint:'cateto² = hipotenusa² − outro cateto².',
     sol:[`${c}² = ${a}² + c²`,`c² = ${c*c} ${M} ${a*a} = ${b*b}`,`c = √${b*b} = ${b}`]};
 }
-function qPyAlg(){
-  const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17]]),k=R(2,6);
-  return {type:'num',answer:k,fig:rightTri(a,b,`${a}x`,`${b}x`,String(c*k)),
-    bal:{l:v=>(a*a+b*b)*v*v,lt:`(${a}x)² + (${b}x)²`,r:(c*k)**2,rt:`${c*k}²`},prompt:'Os catetos estão escritos em função de <var>x</var>. Quanto vale <var>x</var>?',
-    hint:'Monte (ax)² + (bx)² = hipotenusa². Lembre que (3x)² = 9x².',
-    sol:[`(${a}x)² + (${b}x)² = ${c*k}²`,`${a*a}x² + ${b*b}x² = ${c*c*k*k}`,`${c*c}x² = ${c*c*k*k}`,`x² = ${k*k}`,`x = ${k}`]};
-}
 function qLadder(){
-  const [a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[9,12,15]]);
+  const [a,b,c]=pick([[3,4,5],[6,8,10]]);
   const pts=fit([[0,0],[a,0],[0,b]],400,270,48),[W0,F,Tp]=pts,g=centroid(pts);
   let s=`<rect class="wall" x="${W0[0]-18}" y="${Tp[1]-14}" width="18" height="${r1(W0[1]-Tp[1]+14)}"/>`;
   s+=L(W0[0]-30,W0[1],F[0]+40,W0[1])+L(...Tp,...W0,'dash')+rightMark(W0[0],W0[1])+L(...F,...Tp,'ladder');
   s+=T(r1((W0[0]+F[0])/2),W0[1]+22,`${a} m`,'c1')+sideLabel(F,Tp,g,`${c} m`,'c2',26)+T(W0[0]-28,r1((W0[1]+Tp[1])/2),'?','c3','end');
-  return {type:'num',answer:b,label:'altura =',unit:'m',fig:svg(400,270,s),
-    bal:{l:v=>a*a+v*v,lt:`${a}² + h²`,r:c*c,rt:`${c}²`},prompt:`Uma escada de ${c} m está encostada num muro, com o pé a ${a} m da base do muro. A que altura ela toca o muro?`,
+  return {type:'num',answer:b,label:'altura =',unit:'m',fig:svg(400,270,s),bal:{l:v=>a*a+v*v,lt:`${a}² + h²`,r:c*c,rt:`${c}²`},
+    prompt:`Uma escada de ${c} m está encostada num muro, com o pé a ${a} m do muro. A que altura ela toca o muro?`,
     hint:'Muro e chão formam um ângulo reto. A escada é a hipotenusa.',
     sol:[`${c}² = ${a}² + h²`,`h² = ${c*c} ${M} ${a*a} = ${b*b}`,`h = ${b} m`]};
 }
 function qDiag(){
-  const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17]]),k=pick([2,3,4,5]),w=b*k,h=a*k;
+  const [a,b,c]=pick(TRIPLES),w=b,h=a;
   const s0=Math.min(270/w,170/h),W=r1(w*s0),H=r1(h*s0),x0=r1((400-W)/2-24),y0=r1((250-H)/2-10);
   let s=`<rect class="shape" x="${x0}" y="${y0}" width="${W}" height="${H}"/>`+L(x0,y0+H,x0+W,y0,'dash')+rightMark(x0+W,y0+H,-1,-1);
-  s+=T(r1(x0+W/2),y0+H+22,`${w} cm`,'c1')+T(x0+W+12,r1(y0+H/2),`${h} cm`,'c2','start')+T(r1(x0+W/2-14),r1(y0+H/2-14),'?','c3 big');
-  return {type:'num',answer:c*k,label:'d =',unit:'cm',fig:svg(400,250,s),
-    bal:{l:v=>v*v,lt:'d²',r:w*w+h*h,rt:`${w}² + ${h}²`},prompt:`Uma tela retangular mede ${w} cm por ${h} cm. Quanto mede a diagonal?`,
+  s+=T(r1(x0+W/2),y0+H+22,`${w} m`,'c1')+T(x0+W+12,r1(y0+H/2),`${h} m`,'c2','start')+T(r1(x0+W/2-14),r1(y0+H/2-14),'?','c3 big');
+  return {type:'num',answer:c,label:'d =',unit:'m',fig:svg(400,250,s),bal:{l:v=>v*v,lt:'d²',r:w*w+h*h,rt:`${w}² + ${h}²`},
+    prompt:`Um terreno retangular mede ${w} m por ${h} m. Quanto mede a diagonal (tracejada)?`,
     hint:'A diagonal divide o retângulo em dois triângulos retângulos.',
-    sol:[`d² = ${w}² + ${h}²`,`d² = ${w*w} + ${h*h} = ${c*c*k*k}`,`d = √${c*c*k*k} = ${c*k} cm`]};
+    sol:[`d² = ${w}² + ${h}²`,`d² = ${w*w} + ${h*h} = ${c*c}`,`d = √${c*c} = ${c} m`]};
+}
+function qRightArea(){
+  const [a,b,c]=pick(TRIPLES);
+  return {type:'num',answer:a*b/2,label:'A =',fig:rightTri(a,b,String(a),String(b),String(c)),
+    prompt:'Qual é a <b>área</b> deste triângulo retângulo?',
+    hint:'Num triângulo retângulo, um cateto é a base e o outro é a altura. A = base × altura ÷ 2.',
+    sol:[`A = ${a} × ${b} ÷ 2`,`A = ${a*b} ÷ 2 = ${a*b/2}`]};
+}
+function qRightPer(){
+  const [a,b,c]=pick(TRIPLES);
+  return {type:'num',answer:a+b+c,label:'P =',fig:rightTri(a,b,String(a),String(b),'?'),
+    prompt:'Qual é o <b>perímetro</b> deste triângulo retângulo?',
+    hint:'Primeiro ache a hipotenusa com Pitágoras. Depois some os 3 lados.',
+    sol:[`h² = ${a}² + ${b}² = ${c*c}`,`h = ${c}`,`P = ${a} + ${b} + ${c} = ${a+b+c}`]};
 }
 
-// Fase 4 · Plano cartesiano (clique)
-const nz=(a,b)=>{let v;do{v=R(a,b)}while(v===0);return v};
-const pt=(x,y)=>`(${fm(x)}, ${fm(y)})`;
+// Fase 4 · Plano cartesiano
 function qPlot(){
   const p=nz(-5,5),q=nz(-5,5);
   return {type:'click',answer:[p,q],fig:grid('',true),prompt:`Marque o ponto <b>P${pt(p,q)}</b> no plano.`,
@@ -583,119 +619,133 @@ function qPlot(){
 function qRect4(){
   const x1=R(-5,1),x2=x1+R(2,5),y1=R(-5,1),y2=y1+R(2,4);
   const inner=L(gx(x1),gy(y1),gx(x2),gy(y1),'ln')+L(gx(x2),gy(y1),gx(x2),gy(y2),'ln')+gPt(x1,y1,'A')+gPt(x2,y1,'B')+gPt(x2,y2,'C');
-  return {type:'click',answer:[x1,y2],fig:grid(inner,true),prompt:'A, B e C são vértices do retângulo ABCD. Marque o vértice <b>D</b>.',
-    hint:'D fica alinhado verticalmente com A e horizontalmente com C.',
-    sol:[`A${pt(x1,y1)}, B${pt(x2,y1)}, C${pt(x2,y2)}`,`D tem o x de A: ${fm(x1)}`,`D tem o y de C: ${fm(y2)}`,`D = ${pt(x1,y2)}`]};
+  return {type:'click',answer:[x1,y2],fig:grid(inner,true),prompt:'A, B e C são cantos do retângulo ABCD. Marque o canto <b>D</b>.',
+    hint:'D fica bem acima de A e na mesma altura de C.',
+    sol:[`D tem o x de A: ${fm(x1)}`,`D tem o y de C: ${fm(y2)}`,`D = ${pt(x1,y2)}`]};
 }
 function qMid(){
-  let x1,y1,x2,y2;do{x1=R(-6,2);y1=R(-6,6);x2=x1+2*R(1,4);y2=y1+2*R(-3,3)}while(x2>6||Math.abs(y2)>6||y2===y1&&Math.random()<.7);
+  let x1,y1,x2,y2;do{x1=R(-5,1);y1=R(-4,4);x2=x1+2*R(1,3);y2=y1+2*R(-2,2)}while(x2>6||Math.abs(y2)>6);
   const mx=(x1+x2)/2,my=(y1+y2)/2;
   return {type:'click',answer:[mx,my],fig:grid(L(gx(x1),gy(y1),gx(x2),gy(y2),'ln')+gPt(x1,y1,'A')+gPt(x2,y2,'B'),true),
-    prompt:'Marque o <b>ponto médio</b> do segmento AB.',hint:'O ponto médio tem a média dos x e a média dos y.',
-    sol:[`M = ((${fm(x1)} + ${par(x2)}) ÷ 2, (${fm(y1)} + ${par(y2)}) ÷ 2)`,`M = (${fm(x1+x2)} ÷ 2, ${fm(y1+y2)} ÷ 2)`,`M = ${pt(mx,my)}`]};
+    prompt:'Marque o <b>ponto do meio</b> do segmento AB.',hint:'Ande de A até B contando os quadradinhos e pare na metade.',
+    sol:[`M = ((${fm(x1)} + ${par(x2)}) ÷ 2, (${fm(y1)} + ${par(y2)}) ÷ 2)`,`M = ${pt(mx,my)}`]};
 }
 function qReflect(){
-  const p=nz(-5,5),q=nz(-5,5),k=pick(['y','x','o']);
-  const ans=k==='y'?[-p,q]:k==='x'?[p,-q]:[-p,-q];
-  const nome=k==='y'?'ao eixo <b>y</b>':k==='x'?'ao eixo <b>x</b>':'à <b>origem</b>';
-  const regra=k==='y'?'Reflexão no eixo y: troca o sinal de x.':k==='x'?'Reflexão no eixo x: troca o sinal de y.':'Reflexão na origem: troca o sinal de x e de y.';
-  return {type:'click',answer:ans,fig:grid(gPt(p,q,'P'),true),prompt:`Marque o ponto simétrico de P em relação ${nome}.`,hint:regra,
-    sol:[`P = ${pt(p,q)}`,regra,`P′ = ${pt(...ans)}`]};
+  const p=nz(-5,5),q=nz(-5,5),k=pick(['y','x']);
+  const ans=k==='y'?[-p,q]:[p,-q];
+  const regra=k==='y'?'Espelho no eixo y: só o sinal de x muda.':'Espelho no eixo x: só o sinal de y muda.';
+  return {type:'click',answer:ans,fig:grid(gPt(p,q,'P'),true),prompt:`Imagine que o eixo <b>${k}</b> é um espelho. Marque o reflexo de P.`,hint:regra,
+    sol:[`P = ${pt(p,q)}`,regra,`Reflexo = ${pt(...ans)}`]};
 }
 function qTranslate(){
-  let p,q,dx,dy;do{p=R(-5,5);q=R(-5,5);dx=nz(-5,5);dy=nz(-5,5)}while(Math.abs(p+dx)>6||Math.abs(q+dy)>6);
+  let p,q,dx,dy;do{p=R(-4,4);q=R(-4,4);dx=nz(-3,3);dy=nz(-3,3)}while(Math.abs(p+dx)>6||Math.abs(q+dy)>6);
   return {type:'click',answer:[p+dx,q+dy],fig:grid(gPt(p,q,'P'),true),
-    prompt:`P andou ${Math.abs(dx)} ${Math.abs(dx)>1?'unidades':'unidade'} para a ${dx>0?'direita':'esquerda'} e ${Math.abs(dy)} para ${dy>0?'cima':'baixo'}. Marque a nova posição <b>P′</b>.`,
-    hint:'Direita/esquerda mexe no x. Cima/baixo mexe no y.',
-    sol:[`P = ${pt(p,q)}`,`x: ${fm(p)} ${dx>0?'+':M} ${Math.abs(dx)} = ${fm(p+dx)}`,`y: ${fm(q)} ${dy>0?'+':M} ${Math.abs(dy)} = ${fm(q+dy)}`,`P′ = ${pt(p+dx,q+dy)}`]};
+    prompt:`P andou ${Math.abs(dx)} para a ${dx>0?'direita':'esquerda'} e ${Math.abs(dy)} para ${dy>0?'cima':'baixo'}. Marque onde P chegou.`,
+    hint:'Direita/esquerda muda o x. Cima/baixo muda o y.',
+    sol:[`P = ${pt(p,q)}`,`x: ${fm(p)} ${dx>0?'+':M} ${Math.abs(dx)} = ${fm(p+dx)}`,`y: ${fm(q)} ${dy>0?'+':M} ${Math.abs(dy)} = ${fm(q+dy)}`,`Chegada: ${pt(p+dx,q+dy)}`]};
+}
+function gridRect(){const w=R(2,5),h=R(2,4),x1=R(-5,5-w),y1=R(-5,5-h);return {w,h,x1,y1,x2:x1+w,y2:y1+h}}
+const rectOnGrid=r=>poly([[gx(r.x1),gy(r.y1)],[gx(r.x2),gy(r.y1)],[gx(r.x2),gy(r.y2)],[gx(r.x1),gy(r.y2)]],'shape gridfill')+gPt(r.x1,r.y1)+gPt(r.x2,r.y1)+gPt(r.x2,r.y2)+gPt(r.x1,r.y2);
+function qGridArea(){
+  const r=gridRect();
+  return {type:'num',answer:r.w*r.h,label:'A =',unit:'quadradinhos',fig:grid(rectOnGrid(r)),
+    prompt:'Cada quadradinho do plano tem lado 1. Qual é a <b>área</b> do retângulo pintado?',
+    hint:'Conte quantos quadradinhos cabem na base e na altura e multiplique.',
+    sol:[`base: de x = ${fm(r.x1)} até x = ${fm(r.x2)} → ${r.w}`,`altura: de y = ${fm(r.y1)} até y = ${fm(r.y2)} → ${r.h}`,`A = ${r.w} × ${r.h} = ${r.w*r.h}`]};
+}
+function qGridPer(){
+  const r=gridRect();
+  return {type:'num',answer:2*(r.w+r.h),label:'P =',fig:grid(rectOnGrid(r)),
+    prompt:'Cada quadradinho do plano tem lado 1. Qual é o <b>perímetro</b> do retângulo pintado?',
+    hint:'Conte os lados de quadradinho em volta do retângulo: base + altura + base + altura.',
+    sol:[`base = ${r.w}, altura = ${r.h}`,`P = ${r.w} + ${r.h} + ${r.w} + ${r.h} = ${2*(r.w+r.h)}`]};
 }
 
 // Fase 5 · Retas e funções
-const MS=[-3,-2,-1,1,2,3];
+const MS=[-2,-1,1,2];
 function qSlope(){
-  let m,b,x1,x2,y1,y2;do{m=pick(MS);b=R(-3,3);x1=R(-4,2);x2=x1+R(1,3);y1=m*x1+b;y2=m*x2+b}while(Math.abs(y1)>5||Math.abs(y2)>5||x2>5);
+  let m,b,x1,x2,y1,y2;do{m=pick(MS);b=R(-3,3);x1=R(-4,2);x2=x1+R(1,2);y1=m*x1+b;y2=m*x2+b}while(Math.abs(y1)>5||Math.abs(y2)>5||x2>5);
   return {type:'num',answer:m,label:'m =',fig:grid(gLine(m,b,'l1')+gPt(x1,y1,'A')+gPt(x2,y2,'B')),
-    prompt:'Qual é a inclinação (coeficiente angular <var>m</var>) da reta que passa por A e B?',
-    hint:'m = (variação de y) ÷ (variação de x). Quanto a reta sobe ou desce para cada passo à direita?',
+    prompt:'Qual é a inclinação <var>m</var> da reta? Ela diz quanto a reta sobe (ou desce) a cada 1 passo para a direita.',
+    hint:'Conte: quantos quadradinhos a reta sobe ou desce quando anda 1 para a direita? Se desce, m é negativo.',
     sol:[`A${pt(x1,y1)} e B${pt(x2,y2)}`,`m = (${fm(y2)} ${M} ${par(y1)}) ÷ (${fm(x2)} ${M} ${par(x1)})`,`m = ${fm(y2-y1)} ÷ ${fm(x2-x1)} = ${fm(m)}`]};
 }
 function qB(){
-  const m=pick([-2,-1,1,2]),b=nz(-5,5);
+  const m=pick(MS),b=nz(-5,5);
   return {type:'num',answer:b,label:'b =',fig:grid(gLine(m,b,'l1')),
-    prompt:'A reta do gráfico tem equação y = mx + <var>b</var>. Qual é o valor de <var>b</var>?',
-    hint:'b é onde a reta corta o eixo y, ou seja, o valor de y quando x = 0.',
+    prompt:'A reta tem equação y = mx + <var>b</var>. Qual é o valor de <var>b</var>?',
+    hint:'b é onde a reta corta o eixo y (a linha vertical).',
     sol:['Quando x = 0, temos y = b.',`A reta corta o eixo y em ${pt(0,b)}.`,`b = ${fm(b)}`]};
 }
 function qLaw(){
-  let m,b,x2,y2;do{m=pick(MS);b=R(-4,4);x2=R(1,3);y2=m*x2+b}while(Math.abs(y2)>6);
-  const k=pick([8,10,12,-8,-10]),y=m*k+b;
-  return {type:'num',answer:y,label:'y =',fig:grid(gLine(m,b,'l1')+gPt(0,b,'A')+gPt(x2,y2,'B')),
-    prompt:`Descubra a lei y = mx + b da reta pelo gráfico. Depois calcule <var>y</var> quando x = ${fm(k)}.`,
-    hint:'Leia b no eixo y (ponto A). Use A e B para achar m. Então substitua x.',
-    sol:[`b = ${fm(b)} (ponto A)`,`m = (${fm(y2)} ${M} ${par(b)}) ÷ ${x2} = ${fm(m)}`,`y = ${lin(m,b)}`,`y = ${subst(m,b,k)} = ${fm(y)}`]};
+  let m,b,y2;do{m=pick([1,2]);b=R(-3,3);y2=m+b}while(Math.abs(y2)>6);
+  const k=pick([4,5,10]),y=m*k+b;
+  return {type:'num',answer:y,label:'y =',fig:grid(gLine(m,b,'l1')+gPt(0,b,'A')+gPt(1,y2,'B')),
+    prompt:`A reta é y = ${lin(m,b)}. Quanto vale <var>y</var> quando x = ${k}?`,
+    hint:'Troque o x pelo número e faça a conta.',
+    sol:[`y = ${subst(m,b,k)}`,`y = ${fm(y)}`]};
 }
 function qRootClick(){
-  const m=pick(MS),r=nz(-5,5),b=-m*r;
+  const m=pick([1,2,-1]),r=nz(-5,5),b=-m*r;
   return {type:'click',answer:[r,0],fig:grid('',true),
-    prompt:`A reta y = ${lin(m,b)} não está desenhada. Marque o ponto onde ela corta o <b>eixo x</b>.`,
-    hint:'No eixo x, y vale 0. Resolva a equação com y = 0.',
+    prompt:`Marque o ponto onde a reta y = ${lin(m,b)} corta o <b>eixo x</b>.`,
+    hint:'No eixo x, y vale 0. Que x deixa a conta igual a 0?',
     sol:['No eixo x, y = 0.',...solveLin(m,b,0),`Ponto: ${pt(r,0)}`]};
 }
 function qEvalClick(){
-  let m,b,k,y;do{m=pick([-2,-1,1,2,3]);b=R(-4,4);k=nz(-4,4);y=m*k+b}while(Math.abs(y)>6);
+  let m,b,k,y;do{m=pick([1,2,-1]);b=R(-3,3);k=nz(-3,3);y=m*k+b}while(Math.abs(y)>6);
   return {type:'click',answer:[k,y],fig:grid('',true),
     prompt:`Marque o ponto da reta y = ${lin(m,b)} que tem x = ${fm(k)}.`,
-    hint:'Substitua x na equação para descobrir o y do ponto.',
+    hint:'Troque x na equação para descobrir o y do ponto.',
     sol:[`y = ${subst(m,b,k)}`,`y = ${fm(y)}`,`Ponto: ${pt(k,y)}`]};
 }
 
 // Fase 6 · Sistemas
 function sysData(range,bmax){
-  let p,q,m1,m2,b1,b2;do{p=R(-range,range);q=R(-range,range);m1=pick([-3,-2,-1,0,1,2,3]);m2=pick([-3,-2,-1,1,2,3]);b1=q-m1*p;b2=q-m2*p}while(m1===m2||Math.abs(b1)>bmax||Math.abs(b2)>bmax);
+  let p,q,m1,m2,b1,b2;do{p=R(-range,range);q=R(-range,range);m1=pick([-2,-1,0,1,2]);m2=pick([-2,-1,1,2]);b1=q-m1*p;b2=q-m2*p}while(m1===m2||Math.abs(b1)>bmax||Math.abs(b2)>bmax);
   return {p,q,m1,m2,b1,b2,steps:[`${lin(m1,b1)} = ${lin(m2,b2)}`,...solveLin(m1-m2,0,b2-b1),`y = ${subst(m1,b1,p)} = ${fm(q)}`]};
 }
 function qSysClick(){
-  const d=sysData(4,6);
+  const d=sysData(3,5);
   return {type:'click',answer:[d.p,d.q],fig:grid(gLine(d.m1,d.b1,'l1')+gLine(d.m2,d.b2,'l2'),true),
     prompt:`Marque a solução do sistema:<br><span class="eq c1">y = ${lin(d.m1,d.b1)}</span><span class="eq c2">y = ${lin(d.m2,d.b2)}</span>`,
-    hint:'A solução é o ponto que pertence às duas retas: onde elas se cruzam.',
+    hint:'A solução é o ponto onde as duas retas se cruzam.',
     sol:[...d.steps,`Solução: ${pt(d.p,d.q)}`]};
 }
 function qSysSum(){
-  const x=R(5,25),y=R(1,x-1),S=x+y,D=x-y,askX=Math.random()<.5;
+  const x=R(4,12),y=R(1,x-1),S=x+y,D=x-y,askX=Math.random()<.5;
   return {type:'num',answer:askX?x:y,label:askX?'x =':'y =',fig:eqBox([`x + y = ${S}`,`x ${M} y = ${D}`]),
-    bal:askX?{l:v=>2*v,lt:'2x',r:S+D,rt:`${S} + ${D}`}:{l:v=>2*v,lt:'2y',r:S-D,rt:`${S} − ${D}`},prompt:`Resolva o sistema. Quanto vale <var>${askX?'x':'y'}</var>?`,
+    bal:askX?{l:v=>2*v,lt:'2x',r:S+D,rt:`${S} + ${D}`}:{l:v=>2*v,lt:'2y',r:S-D,rt:`${S} ${M} ${D}`},
+    prompt:`Resolva o sistema. Quanto vale <var>${askX?'x':'y'}</var>?`,
     hint:'Some as duas equações: o y desaparece.',
     sol:[`Somando: 2x = ${S} + ${D} = ${S+D}`,`x = ${x}`,`y = ${S} ${M} ${x} = ${y}`]};
 }
 function qSysSubst(){
-  const d=sysData(8,20),askX=Math.random()<.5;
+  const d=sysData(4,8),askX=Math.random()<.5;
   return {type:'num',answer:askX?d.p:d.q,label:askX?'x =':'y =',fig:eqBox([`<span class="c1">y = ${lin(d.m1,d.b1)}</span>`,`<span class="c2">y = ${lin(d.m2,d.b2)}</span>`]),
-    bal:askX?{l:v=>d.m1*v+d.b1,lt:lin(d.m1,d.b1),r:v=>d.m2*v+d.b2,rt:lin(d.m2,d.b2)}:null,prompt:`As duas retas se cruzam em um ponto. Qual é o valor de <var>${askX?'x':'y'}</var> nesse ponto?`,
-    hint:'Os dois lados valem y, então iguale as expressões e resolva para x.',sol:d.steps};
+    bal:askX?{l:v=>d.m1*v+d.b1,lt:lin(d.m1,d.b1),r:v=>d.m2*v+d.b2,rt:lin(d.m2,d.b2)}:null,
+    prompt:`As duas retas se cruzam em um ponto. Qual é o valor de <var>${askX?'x':'y'}</var> nesse ponto?`,
+    hint:'Os dois lados valem y, então iguale as expressões e ache x.',sol:d.steps};
 }
 function qCars(){
-  const c=R(3,15),mo=R(3,15),Tt=c+mo,W=4*c+2*mo;
+  const c=R(2,8),mo=R(2,8),Tt=c+mo,W=4*c+2*mo;
   const car=(x,y)=>`<rect class="tire" x="${x-6}" y="${y+8}" width="10" height="18" rx="3"/><rect class="tire" x="${x+56}" y="${y+8}" width="10" height="18" rx="3"/><rect class="tire" x="${x-6}" y="${y+62}" width="10" height="18" rx="3"/><rect class="tire" x="${x+56}" y="${y+62}" width="10" height="18" rx="3"/><rect class="body" x="${x}" y="${y}" width="60" height="88" rx="14"/>`;
   const moto=(x,y)=>`<rect class="tire" x="${x+6}" y="${y-6}" width="12" height="22" rx="5"/><rect class="tire" x="${x+6}" y="${y+72}" width="12" height="22" rx="5"/><rect class="body" x="${x}" y="${y+12}" width="24" height="64" rx="10"/>`;
-  let s=car(70,40)+moto(268,38)+T(100,165,'carro · 4 rodas','c1')+T(280,165,'moto · 2 rodas','c2');
-  s+=T(200,210,`${Tt} veículos · ${W} rodas`,'big');
-  return {type:'num',answer:mo,label:'motos =',fig:svg(400,240,s),
-    bal:{l:v=>4*(Tt-v)+2*v,lt:`4·(${Tt} − m) + 2m`,r:W,rt:`${W} rodas`},prompt:`Num estacionamento há carros e motos: ${Tt} veículos e ${W} rodas no total. Quantas <b>motos</b> há?`,
-    hint:'Chame carros de c e motos de m: c + m = total de veículos e 4c + 2m = total de rodas.',
-    sol:[`c + m = ${Tt}  →  c = ${Tt} ${M} m`,`4c + 2m = ${W}`,`4(${Tt} ${M} m) + 2m = ${W}`,`${4*Tt} ${M} 2m = ${W}`,`2m = ${4*Tt-W}  →  m = ${mo}`]};
+  let s=car(70,40)+moto(268,38)+T(100,165,'carro · 4 rodas','c1')+T(280,165,'moto · 2 rodas','c2')+T(200,210,`${Tt} veículos · ${W} rodas`,'big');
+  return {type:'num',answer:mo,label:'motos =',fig:svg(400,240,s),bal:{l:v=>4*(Tt-v)+2*v,lt:`4·(${Tt} − m) + 2m`,r:W,rt:`${W} rodas`},
+    prompt:`Num estacionamento há ${Tt} veículos (carros e motos) e ${W} rodas. Quantas <b>motos</b> há?`,
+    hint:'Se todos fossem carros, seriam quantas rodas? Cada moto no lugar de um carro tira 2 rodas.',
+    sol:[`Se todos fossem carros: ${Tt} × 4 = ${4*Tt} rodas`,`Sobram ${4*Tt} ${M} ${W} = ${4*Tt-W} rodas a mais`,`Cada moto tem 2 rodas a menos: ${4*Tt-W} ÷ 2 = ${mo} motos`]};
 }
 function qTriple(){
-  const a=R(3,15),k=R(2,4),S=a*(k+1);
-  const u=Math.min(48,300/(k+1)),x0=70;
-  let s=T(x0-12,62,'menor','','end')+`<rect class="bar" x="${x0}" y="44" width="${u}" height="36" rx="4"/>`+T(x0+u/2,62,'?','c1');
-  s+=T(x0-12,122,'maior','','end');
+  const a=R(2,10),k=R(2,3),S=a*(k+1),u=48,x0=70;
+  let s=T(x0-12,62,'menor','','end')+`<rect class="bar" x="${x0}" y="44" width="${u}" height="36" rx="4"/>`+T(x0+u/2,62,'?','c1')+T(x0-12,122,'maior','','end');
   for(let i=0;i<k;i++) s+=`<rect class="bar2" x="${x0+i*u}" y="104" width="${u}" height="36" rx="4"/>`+T(x0+i*u+u/2,122,'?','c2');
-  const end=x0+Math.max(u,k*u);
+  const end=x0+k*u;
   s+=`<path class="thin" d="M${end+10} 44 q10 0 10 10 v28 q0 8 8 10 q-8 2 -8 10 v28 q0 10 -10 10"/>`+T(end+34,92,`soma ${S}`,'','start');
-  return {type:'num',answer:a,label:'menor =',fig:svg(400,180,s),
-    bal:{l:v=>v+k*v,lt:`x + ${k}x`,r:S},prompt:`A soma de dois números é ${S}. O maior é ${k===2?'o dobro':k===3?'o triplo':'o quádruplo'} do menor. Qual é o <b>menor</b> número?`,
-    hint:`Chame o menor de x. O maior vale ${k}x. Some os dois.`,
+  return {type:'num',answer:a,label:'menor =',fig:svg(400,180,s),bal:{l:v=>v+k*v,lt:`x + ${k}x`,r:S},
+    prompt:`A soma de dois números é ${S}. O maior é ${k===2?'o dobro':'o triplo'} do menor. Qual é o <b>menor</b>?`,
+    hint:`Olhe as barras: são ${k+1} pedaços iguais no total.`,
     sol:[`x + ${k}x = ${S}`,`${k+1}x = ${S}`,`x = ${S} ÷ ${k+1} = ${a}`]};
 }
 
@@ -709,57 +759,56 @@ function circFig(mode,label,inside=''){
   return svg(400,256,s);
 }
 function qCircArea(){
-  const r=R(2,12);
-  return {type:'num',answer:r*r,label:'k =',fig:circFig('r',String(r)),
-    prompt:'A área deste círculo é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Área do círculo = π · r².',
-    sol:['A = π · r²',`A = π · ${r}² = ${r*r}π`,`k = ${r*r}`]};
+  const r=R(1,6);
+  return {type:'num',answer:r*r,label:'k =',fig:circFig('r',`raio ${r}`),
+    prompt:'A área deste círculo é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Área do círculo = π × raio × raio.',
+    sol:['A = π × r × r',`A = π × ${r} × ${r} = ${r*r}π`,`k = ${r*r}`]};
 }
 function qCircLen(){
-  const d=R(3,24);
-  return {type:'num',answer:d,label:'k =',fig:circFig('d',String(d)),
-    prompt:'O comprimento desta circunferência é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Comprimento = π · diâmetro (ou 2 · π · raio).',
-    sol:['C = π · d',`C = π · ${d} = ${d}π`,`k = ${d}`]};
+  const d=R(2,12);
+  return {type:'num',answer:d,label:'k =',fig:circFig('d',`diâmetro ${d}`),
+    prompt:'O comprimento (a volta) desta circunferência é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'Comprimento = π × diâmetro.',
+    sol:['C = π × d',`C = π × ${d} = ${d}π`,`k = ${d}`]};
 }
-function qCircAlg(){
-  const x=R(2,10),p=R(1,9),d=2*x+p;
-  return {type:'num',answer:x,fig:circFig('d',lin(2,p),`C = ${d}π`),
-    bal:{l:v=>2*v+p,lt:lin(2,p),r:d},prompt:`O diâmetro mede ${lin(2,p)} e o comprimento da circunferência é ${d}π. Quanto vale <var>x</var>?`,
-    hint:'C = π · d. Se C = kπ, então o diâmetro vale k.',
-    sol:[`π · (${lin(2,p)}) = ${d}π`,...solveLin(2,p,d)]};
+function qCircLenR(){
+  const r=R(1,8);
+  return {type:'num',answer:2*r,label:'k =',fig:circFig('r',`raio ${r}`),
+    prompt:'O comprimento desta circunferência é <var>k</var>·π. Quanto vale <var>k</var>?',hint:'O diâmetro é o dobro do raio. Comprimento = π × diâmetro.',
+    sol:[`d = 2 × ${r} = ${2*r}`,`C = π × ${2*r} = ${2*r}π`,`k = ${2*r}`]};
 }
 function qCircR(){
-  const r=R(2,12);
-  return {type:'num',answer:r,label:'r =',fig:circFig('r','?',`A = ${r*r}π`),
-    bal:{l:v=>v*v,lt:'r²',r:r*r},prompt:`A área deste círculo é ${r*r}π. Quanto mede o raio?`,hint:'π · r² = área. Divida por π e tire a raiz.',
-    sol:[`π · r² = ${r*r}π`,`r² = ${r*r}`,`r = ${r}`]};
+  const r=R(1,6);
+  return {type:'num',answer:r,label:'r =',fig:circFig('r','?',`A = ${r*r}π`),bal:{l:v=>v*v,lt:'r × r',r:r*r},
+    prompt:`A área deste círculo é ${r*r}π. Quanto mede o raio?`,hint:'Qual número vezes ele mesmo dá o valor antes do π?',
+    sol:[`π × r × r = ${r*r}π`,`r × r = ${r*r}`,`r = ${r}`]};
 }
 function qSector(){
-  const [th,rs,fr]=pick([[90,[2,4,6,8,10,12],'1/4'],[60,[6,12],'1/6'],[120,[3,6,9],'1/3'],[180,[2,4,6,8,10],'1/2'],[45,[4,8,12],'1/8'],[270,[2,4,6,8],'3/4']]);
+  const [th,rs,fr]=pick([[90,[2,4,6],'1/4'],[180,[2,4,6,8],'1/2']]);
   const r=pick(rs),k=th/360*r*r,cx=200,cy=128,R0=100,[x1,y1]=P(cx,cy,R0,0),[x2,y2]=P(cx,cy,R0,th);
-  let s=`<circle class="faint" cx="${cx}" cy="${cy}" r="${R0}"/><path class="shape" d="M${cx} ${cy} L${x1} ${y1} A${R0} ${R0} 0 ${th>180?1:0} 0 ${x2} ${y2} Z"/>`;
-  s+=arc(cx,cy,24,0,th,'k2')+T(...P(cx,cy,44,th/2),th+'°','c2')+T(cx+R0/2,cy+16,String(r),'c1')+dot(cx,cy);
+  let s=`<circle class="faint" cx="${cx}" cy="${cy}" r="${R0}"/><path class="shape" d="M${cx} ${cy} L${x1} ${y1} A${R0} ${R0} 0 0 0 ${x2} ${y2} Z"/>`;
+  s+=arc(cx,cy,24,0,th,'k2')+T(...P(cx,cy,46,th/2),th+'°','c2')+T(cx+R0/2,cy+16,String(r),'c1')+dot(cx,cy);
   return {type:'num',answer:k,label:'k =',fig:svg(400,256,s),
-    prompt:`O setor tem raio ${r} e ângulo de ${th}°. Sua área é <var>k</var>·π. Quanto vale <var>k</var>?`,
-    hint:`O setor é a fração ${th}/360 do círculo inteiro.`,
-    sol:[`${th}° ÷ 360° = ${fr} do círculo`,`Círculo inteiro: π · ${r}² = ${r*r}π`,`Setor: ${r*r}π · ${fr} = ${fm(k)}π`]};
+    prompt:`A parte pintada é ${th===90?'um quarto':'metade'} de um círculo de raio ${r}. Sua área é <var>k</var>·π. Quanto vale <var>k</var>?`,
+    hint:`Calcule a área do círculo inteiro e pegue ${th===90?'um quarto':'a metade'}.`,
+    sol:[`Círculo inteiro: π × ${r} × ${r} = ${r*r}π`,`Parte pintada: ${r*r}π × ${fr} = ${fm(k)}π`]};
 }
 function qWheel(){
-  const r=pick([20,25,30,35,40,50]),n=R(1,4),v=Math.round(6.28*r*n*100)/100;
-  return {type:'num',answer:v,tol:.06,label:'d =',unit:'cm',fig:circFig('r',`${r} cm`),
-    prompt:`Uma roda de raio ${r} cm dá ${n} ${n>1?'voltas completas':'volta completa'}. Quantos centímetros ela anda? Use π = 3,14.`,
-    hint:'Uma volta = comprimento da circunferência = 2 · π · r.',
-    sol:[`1 volta = 2 · 3,14 · ${r} = ${fm(6.28*r)} cm`,`${n} ${n>1?'voltas':'volta'} = ${fm(6.28*r)} · ${n} = ${fm(v)} cm`]};
+  const r=pick([5,10,20,50]),n=R(1,2),v=6*r*n;
+  return {type:'num',answer:v,label:'d =',unit:'cm',fig:circFig('r',`${r} cm`),
+    prompt:`Uma roda de raio ${r} cm dá ${n} ${n>1?'voltas completas':'volta completa'}. Quantos centímetros ela anda? Use π = 3.`,
+    hint:'Uma volta = 2 × π × raio.',
+    sol:[`1 volta = 2 × 3 × ${r} = ${6*r} cm`,...(n>1?[`${n} voltas = ${6*r} × ${n} = ${v} cm`]:[])]};
 }
 
 const PHASES=[
-  {n:3,forma:'Triângulo',nome:'Ângulos',desc:'Retas, ângulos opostos e a soma 180° do triângulo.',gens:[qSupl,qComp,qVert,qTri,qTriMax]},
-  {n:4,forma:'Quadrado',nome:'Perímetro e área',desc:'Lados escritos com x: monte a equação e resolva.',gens:[qPerim,qSqArea,qRectArea,qTriArea]},
-  {n:5,forma:'Pentágono',nome:'Pitágoras',desc:'a² + b² = c² em triângulos, escadas e telas.',gens:[qHyp,qLeg,qPyAlg,qLadder,qDiag]},
-  {n:6,forma:'Hexágono',nome:'Plano cartesiano',desc:'Toque no plano para marcar pontos, médios e simétricos.',gens:[qPlot,qRect4,qMid,qReflect,qTranslate]},
-  {n:7,forma:'Heptágono',nome:'Retas e funções',desc:'Inclinação, coeficiente linear e raízes de y = mx + b.',gens:[qSlope,qB,qLaw,qRootClick,qEvalClick]},
-  {n:8,forma:'Octógono',nome:'Sistemas',desc:'Duas retas, um ponto em comum. Carros, motos e balanças.',gens:[qSysClick,qSysSum,qSysSubst,qCars,qTriple]},
-  {n:9,forma:'Eneágono',nome:'Círculos',desc:'Comprimento, área e setores em função de π.',gens:[qCircArea,qCircLen,qCircAlg,qCircR,qSector,qWheel]},
-  {n:10,forma:'Decágono',nome:'Desafio final',desc:'Tudo misturado: 8 questões, 3 vidas.',gens:'all',count:8},
+  {n:3,forma:'Triângulo',nome:'Ângulos',desc:'Retas, ângulos opostos e a soma 180° do triângulo.',gens:[qSupl,qComp,qVert,qTri,qTriIso]},
+  {n:4,forma:'Quadrado',nome:'Perímetro e área',desc:'Some os lados e multiplique: retângulos, quadrados, triângulos e terrenos em L.',gens:[qRectPer,qRectArea,qSqPer,qSqArea,qTriArea,qTriPer,qLShape,qSqSide,qRectMissing]},
+  {n:5,forma:'Pentágono',nome:'Pitágoras',desc:'a² + b² = c² com números pequenos, mais área e perímetro.',gens:[qHyp,qLeg,qLadder,qDiag,qRightArea,qRightPer]},
+  {n:6,forma:'Hexágono',nome:'Plano cartesiano',desc:'Marque pontos e conte quadradinhos para achar área e perímetro.',gens:[qPlot,qRect4,qMid,qReflect,qTranslate,qGridArea,qGridPer]},
+  {n:7,forma:'Heptágono',nome:'Retas e funções',desc:'Inclinação, onde a reta corta os eixos e y = mx + b.',gens:[qSlope,qB,qLaw,qRootClick,qEvalClick]},
+  {n:8,forma:'Octógono',nome:'Sistemas',desc:'Duas retas, um ponto em comum. Carros, motos e barras.',gens:[qSysClick,qSysSum,qSysSubst,qCars,qTriple]},
+  {n:9,forma:'Eneágono',nome:'Círculos',desc:'Comprimento e área do círculo em função de π.',gens:[qCircArea,qCircLen,qCircLenR,qCircR,qSector,qWheel]},
+  {n:10,forma:'Decágono',nome:'Desafio final',desc:'Tudo misturado: 8 questões.',gens:'all',count:8},
 ];
 
 /* ===== progresso ===== */
